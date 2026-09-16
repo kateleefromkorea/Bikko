@@ -1,0 +1,323 @@
+import { useState } from "react";
+
+interface Profile {
+  name: string;
+  email: string;
+  dob: string;
+  gender: string;
+  height: string;
+  weight: string;
+  activityLevel: string;
+  calorieGoal: string;
+  waterGoal: string;
+  sleepGoal: string;
+}
+
+interface Connector {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  connected: boolean;
+  lastSync?: string;
+}
+
+const DEFAULT_PROFILE: Profile = {
+  name: "Alex Johnson",
+  email: "alex@example.com",
+  dob: "1992-04-15",
+  gender: "Prefer not to say",
+  height: "174",
+  weight: "72",
+  activityLevel: "Moderately active",
+  calorieGoal: "2000",
+  waterGoal: "8",
+  sleepGoal: "8",
+};
+
+const ACTIVITY_LEVELS = ["Sedentary", "Lightly active", "Moderately active", "Very active", "Extra active"];
+const GENDERS = ["Male", "Female", "Non-binary", "Prefer not to say"];
+
+const INITIAL_CONNECTORS: Connector[] = [
+  { id: "apple-watch", name: "Apple Watch", description: "Sync heart rate, steps, workouts & sleep", icon: "⌚", connected: true, lastSync: "2 min ago" },
+  { id: "apple-health", name: "Apple Health", description: "Pull nutrition, body measurements & activity", icon: "🍎", connected: true, lastSync: "5 min ago" },
+  { id: "google-fit", name: "Google Fit", description: "Sync activity, heart points & workouts", icon: "🏃", connected: false },
+  { id: "fitbit", name: "Fitbit", description: "Import steps, sleep stages & heart rate", icon: "📊", connected: false },
+  { id: "garmin", name: "Garmin Connect", description: "Import GPS workouts, VO2 max & body battery", icon: "🛰️", connected: false },
+  { id: "whoop", name: "WHOOP", description: "Sync recovery score, strain & sleep performance", icon: "💪", connected: false },
+  { id: "oura", name: "Oura Ring", description: "Import readiness, sleep quality & activity", icon: "💍", connected: false },
+  { id: "samsung", name: "Samsung Health", description: "Sync steps, workouts & sleep from Galaxy Watch", icon: "📱", connected: false },
+];
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">{label}</label>
+      {children}
+    </div>
+  );
+}
+
+const inputCls = "rounded-xl border border-border px-4 py-2.5 text-sm text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-ring transition-all";
+const selectCls = `${inputCls} appearance-none cursor-pointer`;
+
+export default function ProfileView() {
+  const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
+  const [connectors, setConnectors] = useState<Connector[]>(INITIAL_CONNECTORS);
+  const [editingInfo, setEditingInfo] = useState(false);
+  const [editingGoals, setEditingGoals] = useState(false);
+  const [draft, setDraft] = useState<Profile>(DEFAULT_PROFILE);
+  const [syncing, setSyncing] = useState<string | null>(null);
+
+  const set = (k: keyof Profile) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setDraft((p) => ({ ...p, [k]: e.target.value }));
+
+  const saveInfo = () => { setProfile(draft); setEditingInfo(false); };
+  const saveGoals = () => { setProfile(draft); setEditingGoals(false); };
+  const cancelInfo = () => { setDraft(profile); setEditingInfo(false); };
+  const cancelGoals = () => { setDraft(profile); setEditingGoals(false); };
+
+  const toggleConnector = (id: string) => {
+    setSyncing(id);
+    setTimeout(() => {
+      setConnectors((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? c.connected
+              ? { ...c, connected: false, lastSync: undefined }
+              : { ...c, connected: true, lastSync: "Just now" }
+            : c
+        )
+      );
+      setSyncing(null);
+    }, 1200);
+  };
+
+  const age = profile.dob
+    ? Math.floor((Date.now() - new Date(profile.dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+    : null;
+
+  const bmi = profile.height && profile.weight
+    ? (parseFloat(profile.weight) / Math.pow(parseFloat(profile.height) / 100, 2)).toFixed(1)
+    : null;
+
+  const bmiLabel = bmi
+    ? parseFloat(bmi) < 18.5 ? "Underweight" : parseFloat(bmi) < 25 ? "Normal" : parseFloat(bmi) < 30 ? "Overweight" : "Obese"
+    : null;
+
+  const connectedCount = connectors.filter((c) => c.connected).length;
+
+  return (
+    <div className="space-y-8">
+      {/* Page header */}
+      <div>
+        <h2 className="text-5xl font-extrabold text-foreground mb-1">Profile</h2>
+        <p className="text-muted-foreground text-sm">Manage your personal details and connected devices</p>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+        {/* Left: avatar card + daily goals */}
+        <div className="flex flex-col gap-4">
+          {/* Avatar */}
+          <div className="rounded-2xl border border-border bg-card p-6 flex flex-col items-center text-center">
+            <div className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-extrabold text-primary-foreground mb-4" style={{ background: "var(--primary)" }}>
+              {profile.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+            </div>
+            <h3 className="text-xl font-extrabold text-foreground">{profile.name}</h3>
+            <p className="text-sm text-muted-foreground mt-0.5">{profile.email}</p>
+            {age && <p className="text-xs text-muted-foreground mt-1">{age} years old · {profile.gender}</p>}
+
+            <div className="w-full mt-5 pt-5 border-t border-border grid grid-cols-3 gap-2 text-center">
+              <div>
+                <p className="text-xl font-extrabold text-foreground">{profile.height}<span className="text-xs font-normal text-muted-foreground">cm</span></p>
+                <p className="text-xs text-muted-foreground mt-0.5">Height</p>
+              </div>
+              <div>
+                <p className="text-xl font-extrabold text-foreground">{profile.weight}<span className="text-xs font-normal text-muted-foreground">kg</span></p>
+                <p className="text-xs text-muted-foreground mt-0.5">Weight</p>
+              </div>
+              <div>
+                <p className="text-xl font-extrabold text-foreground">{bmi ?? "—"}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{bmiLabel ?? "BMI"}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Daily goals */}
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-bold text-foreground text-sm uppercase tracking-wide">Daily Goals</h4>
+              {!editingGoals && (
+                <button
+                  onClick={() => { setDraft(profile); setEditingGoals(true); }}
+                  className="text-xs text-primary font-bold transition-all hover:opacity-70"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {editingGoals ? (
+              <div className="space-y-3">
+                <Field label="Calories (kcal)">
+                  <input value={draft.calorieGoal} onChange={set("calorieGoal")} type="number" min="1000" max="5000" className={inputCls} />
+                </Field>
+                <Field label="Water (glasses)">
+                  <input value={draft.waterGoal} onChange={set("waterGoal")} type="number" min="1" max="20" className={inputCls} />
+                </Field>
+                <Field label="Sleep (hours)">
+                  <input value={draft.sleepGoal} onChange={set("sleepGoal")} type="number" min="4" max="12" step="0.5" className={inputCls} />
+                </Field>
+                <Field label="Activity level">
+                  <select value={draft.activityLevel} onChange={set("activityLevel")} className={selectCls}>
+                    {ACTIVITY_LEVELS.map((a) => <option key={a}>{a}</option>)}
+                  </select>
+                </Field>
+                <div className="flex gap-2 pt-2">
+                  <button onClick={saveGoals} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">Save</button>
+                  <button onClick={cancelGoals} className="flex-1 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-80 transition-all">Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {[
+                  { label: "Calories", value: `${parseInt(profile.calorieGoal).toLocaleString()} kcal`, icon: "🍽️" },
+                  { label: "Water", value: `${profile.waterGoal} glasses`, icon: "💧" },
+                  { label: "Sleep", value: `${profile.sleepGoal} hours`, icon: "🌙" },
+                  { label: "Activity", value: profile.activityLevel, icon: "🏃" },
+                ].map(({ label, value, icon }) => (
+                  <div key={label} className="flex items-center gap-3">
+                    <span className="text-base">{icon}</span>
+                    <span className="text-sm text-muted-foreground flex-1">{label}</span>
+                    <span className="text-sm font-bold text-foreground">{value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right: personal info + connected devices */}
+        <div className="xl:col-span-2 flex flex-col gap-6">
+          {/* Personal info */}
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h4 className="font-bold text-foreground text-sm uppercase tracking-wide">Personal Information</h4>
+              {!editingInfo && (
+                <button
+                  onClick={() => { setDraft(profile); setEditingInfo(true); }}
+                  className="text-xs text-primary font-bold transition-all hover:opacity-70"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {editingInfo ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Full name">
+                    <input value={draft.name} onChange={set("name")} className={inputCls} />
+                  </Field>
+                  <Field label="Email">
+                    <input value={draft.email} onChange={set("email")} type="email" className={inputCls} />
+                  </Field>
+                  <Field label="Date of birth">
+                    <input value={draft.dob} onChange={set("dob")} type="date" className={inputCls} />
+                  </Field>
+                  <Field label="Gender">
+                    <select value={draft.gender} onChange={set("gender")} className={selectCls}>
+                      {GENDERS.map((g) => <option key={g}>{g}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Height (cm)">
+                    <input value={draft.height} onChange={set("height")} type="number" min="100" max="250" className={inputCls} />
+                  </Field>
+                  <Field label="Weight (kg)">
+                    <input value={draft.weight} onChange={set("weight")} type="number" min="30" max="300" className={inputCls} />
+                  </Field>
+                </div>
+                <div className="flex gap-3 mt-5 pt-5 border-t border-border">
+                  <button onClick={saveInfo} className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">Save changes</button>
+                  <button onClick={cancelInfo} className="px-6 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-80 transition-all">Cancel</button>
+                </div>
+              </>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-5 gap-x-6">
+                {[
+                  { label: "Full name", value: profile.name },
+                  { label: "Email", value: profile.email },
+                  { label: "Date of birth", value: new Date(profile.dob + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) },
+                  { label: "Gender", value: profile.gender },
+                  { label: "Height", value: `${profile.height} cm` },
+                  { label: "Weight", value: `${profile.weight} kg` },
+                ].map(({ label, value }) => (
+                  <div key={label}>
+                    <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+                    <p className="text-sm font-bold text-foreground">{value}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Connected devices */}
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h4 className="font-bold text-foreground text-sm uppercase tracking-wide">Connected Devices</h4>
+                <p className="text-xs text-muted-foreground mt-0.5">{connectedCount} of {connectors.length} connected</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {connectors.map((c) => (
+                <div
+                  key={c.id}
+                  className="rounded-xl border p-4 flex items-center gap-4 transition-all"
+                  style={c.connected ? { borderColor: "var(--primary)", background: "var(--muted)" } : { borderColor: "var(--border)", background: "var(--card)" }}
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: c.connected ? "rgba(107,92,246,0.12)" : "var(--secondary)" }}>
+                    {c.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h5 className="text-sm font-bold text-foreground truncate">{c.name}</h5>
+                      {c.connected && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "var(--teal)" }} />}
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{c.lastSync ? `Synced ${c.lastSync}` : c.description}</p>
+                  </div>
+                  <button
+                    onClick={() => toggleConnector(c.id)}
+                    disabled={syncing === c.id}
+                    className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                    style={
+                      syncing === c.id
+                        ? { background: "var(--secondary)", color: "var(--muted-foreground)" }
+                        : c.connected
+                        ? { background: "var(--secondary)", color: "var(--secondary-foreground)" }
+                        : { background: "var(--primary)", color: "var(--primary-foreground)" }
+                    }
+                  >
+                    {syncing === c.id ? "…" : c.connected ? "Disconnect" : "Connect"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Account */}
+      <div className="rounded-2xl border border-border bg-card p-6">
+        <h4 className="font-bold text-foreground mb-1 text-sm uppercase tracking-wide">Account</h4>
+        <p className="text-xs text-muted-foreground mb-4">Manage your account data and preferences</p>
+        <div className="flex flex-wrap gap-3">
+          <button className="px-4 py-2.5 rounded-xl border border-border text-sm text-secondary-foreground font-semibold hover:bg-secondary transition-all">Export my data</button>
+          <button className="px-4 py-2.5 rounded-xl border border-border text-sm text-secondary-foreground font-semibold hover:bg-secondary transition-all">Notification settings</button>
+          <button className="px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ml-auto" style={{ borderColor: "#FFB3C1", color: "#FF7575", background: "rgba(255,117,117,0.05)" }}>Delete account</button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,131 @@
+import { useState } from "react";
+import { defaultData, defaultBiometrics } from "./data";
+import type { HabitData, BiometricData } from "./types";
+import Dashboard from "./components/Dashboard";
+import HabitsView from "./components/HabitsView";
+import ProfileView from "./components/ProfileView";
+import CoachView from "./components/CoachView";
+import { useAuth } from "./auth/AuthProvider";
+import SignInScreen from "./auth/SignInScreen";
+import SetupNeeded from "./auth/SetupNeeded";
+import { isSupabaseConfigured } from "./lib/supabase";
+
+type Tab = "habits" | "dashboard" | "coaches" | "profile";
+
+const TODAY = new Date().toISOString().split("T")[0];
+
+function completedToday(data: HabitData): number {
+  let count = 0;
+  if ((data.water.find((e) => e.date === TODAY)?.value ?? 0) >= 8) count++;
+  if (data.medication.find((e) => e.date === TODAY)?.value === 1) count++;
+  if ((data.food.find((e) => e.date === TODAY)?.value ?? 0) > 0) count++;
+  if ((data.exercise.find((e) => e.date === TODAY)?.value ?? 0) >= 30) count++;
+  if ((data.sleep.find((e) => e.date === TODAY)?.value ?? 0) >= 3) count++;
+  if ((data.mood.find((e) => e.date === TODAY)?.value ?? 0) > 0) count++;
+  return count;
+}
+
+export default function App() {
+  const { session, loading, signOut } = useAuth();
+  const [tab, setTab] = useState<Tab>("habits");
+  const [data, setData] = useState<HabitData>(defaultData);
+  const [biometrics] = useState<BiometricData>(defaultBiometrics);
+
+  if (!isSupabaseConfigured) {
+    return <SetupNeeded />;
+  }
+
+  if (loading) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  if (!session) {
+    return <SignInScreen />;
+  }
+
+  const done = completedToday(data);
+  const total = 6 + data.custom.length;
+  const pct = Math.round((done / total) * 100);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-40 border-b border-border bg-card">
+        <div className="w-full px-4 sm:px-6 flex items-center gap-3 h-16">
+
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold text-primary-foreground bg-primary">
+              Y
+            </div>
+            <span className="text-xl font-extrabold text-foreground">mybestself</span>
+          </div>
+
+          {/* Progress pill */}
+          <div className="flex items-center gap-2 ml-3 px-3 py-1.5 rounded-full bg-muted border border-border">
+            <div className="w-20 h-1.5 rounded-full bg-secondary overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-700"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground font-semibold">{done}/{total} today</span>
+          </div>
+
+          {/* Nav + profile */}
+          <nav className="ml-auto flex items-center gap-1">
+            {([
+              { id: "habits", label: "Habits" },
+              { id: "dashboard", label: "Dashboard" },
+              { id: "coaches", label: "Find a Coach" },
+            ] as { id: Tab; label: string }[]).map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                style={tab === id ? { background: "var(--primary)", color: "var(--primary-foreground)" } : { color: "var(--muted-foreground)" }}
+              >
+                {label}
+                {id === "coaches" && (
+                  <span className="text-xs font-bold px-1.5 py-0.5 rounded-md" style={tab === id ? { background: "rgba(255,255,255,0.25)", color: "#fff" } : { background: "var(--secondary)", color: "var(--secondary-foreground)" }}>
+                    Beta
+                  </span>
+                )}
+              </button>
+            ))}
+
+            {/* Profile avatar — far right */}
+            <button
+              onClick={() => setTab("profile")}
+              className="ml-2 w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all flex-shrink-0"
+              style={tab === "profile"
+                ? { background: "var(--primary)", color: "#fff", borderColor: "var(--primary)" }
+                : { background: "var(--secondary)", color: "var(--secondary-foreground)", borderColor: "transparent" }}
+              title="Profile"
+            >
+              AJ
+            </button>
+
+            <button
+              onClick={() => signOut()}
+              className="ml-1 px-3 py-2 rounded-xl text-sm font-semibold text-muted-foreground"
+              title="Sign out"
+            >
+              Sign out
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      <main className="w-full px-4 sm:px-6 py-8">
+        {tab === "habits" && <HabitsView data={data} onChange={setData} biometrics={biometrics} />}
+        {tab === "dashboard" && <Dashboard data={data} biometrics={biometrics} />}
+        {tab === "coaches" && <CoachView />}
+        {tab === "profile" && <ProfileView />}
+      </main>
+
+      <footer className="border-t border-border text-center py-6 text-xs text-muted-foreground px-4 sm:px-6">
+        Yes Habits · {new Date().getFullYear()} · Stay consistent, stay you.
+      </footer>
+    </div>
+  );
+}

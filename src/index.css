@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 6px);
+  --radius-xl: calc(var(--radius) + 12px);
+  --radius-2xl: calc(var(--radius) + 20px);
+}
+
+:root {
+  --background: #EDE9FF;
+  --foreground: #1A1033;
+  --card: #FFFFFF;
+  --card-foreground: #1A1033;
+  --primary: #6B5CF6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F0EEF8;
+  --secondary-foreground: #4A3F8A;
+  --muted: #F5F3FF;
+  --muted-foreground: #8B7DB8;
+  --accent: #2DC4B2;
+  --accent-foreground: #FFFFFF;
+  --border: #DDD8F4;
+  --ring: #6B5CF6;
+  --radius: 16px;
+
+  --coral: #FF7575;
+  --amber: #F5A623;
+  --teal: #2DC4B2;
+  --lilac: #C4B5F4;
+  --peach: #FFB399;
+  --sky: #89C4F4;
+  --mint: #7EDCCE;
+  --rose: #FFB3C1;
+  --lavender: #B8AEFF;
+  --gold: #FFD166;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background-color: var(--background);
+  color: var(--foreground);
+  line-height: 1.6;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }

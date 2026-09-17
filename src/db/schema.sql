@@ -1,14 +1,28 @@
 -- mybestself schema
--- Run this once in the Supabase SQL editor (Project → SQL Editor → New query) on a fresh project.
+-- Run this in the Supabase SQL editor (Project → SQL Editor → New query).
+-- Safe to re-run: drops and recreates everything below from scratch.
+
+drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists public.handle_new_user();
+drop table if exists public.custom_habit_entries cascade;
+drop table if exists public.custom_habits cascade;
+drop table if exists public.habit_entries cascade;
+drop table if exists public.medications cascade;
+drop table if exists public.profiles cascade;
+drop type if exists public.habit_category;
 
 -- ── profiles ─────────────────────────────────────────────────────────────
 create table public.profiles (
   user_id uuid primary key references auth.users (id) on delete cascade,
   name text not null default '',
   date_of_birth date,
+  gender text,
   height_cm numeric,
   weight_kg numeric,
-  goals text,
+  activity_level text,
+  calorie_goal numeric not null default 2000,
+  water_goal numeric not null default 8,
+  sleep_goal numeric not null default 8,
   updated_at timestamptz not null default now()
 );
 
@@ -53,8 +67,11 @@ create policy "habit_entries are self-owned" on public.habit_entries
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ── custom_habits + custom_habit_entries ───────────────────────────────────
+-- id is client-generated (crypto.randomUUID()) rather than DB-default, so a
+-- newly-created habit and its first logged entry can be written together
+-- without a round trip to fetch a server-assigned id first.
 create table public.custom_habits (
-  id uuid primary key default gen_random_uuid(),
+  id uuid primary key,
   user_id uuid not null references auth.users (id) on delete cascade,
   name text not null,
   unit text not null,

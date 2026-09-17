@@ -1,11 +1,15 @@
 import { useState } from "react";
 import type { HabitData, BiometricData, HabitEntry, CustomHabit } from "../types";
+import type { useMedications } from "../hooks/useMedications";
+
+type Medications = ReturnType<typeof useMedications>;
 
 interface Props {
   data: HabitData;
   onChange: (data: HabitData) => void;
   activeDate: string;
   biometrics: BiometricData;
+  medications: Medications;
 }
 
 const TODAY = new Date().toISOString().split("T")[0];
@@ -253,35 +257,35 @@ function WaterCard({ data, onChange, activeDate, biometrics }: Props) {
 }
 
 /* ─── Medication ─── */
-function MedicationCard({ data, onChange, activeDate }: Props) {
-  const [medList, setMedList] = useState<string[]>(["Daily vitamin", "Blood pressure"]);
+function MedicationCard({ data, onChange, activeDate, medications }: Props) {
+  const { medications: medList, addMedication, removeMedication } = medications;
   const [newMed, setNewMed] = useState("");
   const [adding, setAdding] = useState(false);
 
   const entry = getEntry(data.medication, activeDate);
   const checkedRaw: Record<string, boolean> = entry?.note ? JSON.parse(entry.note) : {};
-  const checkedCount = medList.filter((m) => checkedRaw[m]).length;
+  const checkedCount = medList.filter((m) => checkedRaw[m.id]).length;
   const allTaken = medList.length > 0 && checkedCount === medList.length;
 
-  const toggleMed = (name: string) => {
-    const updated = { ...checkedRaw, [name]: !checkedRaw[name] };
-    const count = medList.filter((m) => updated[m]).length;
+  const toggleMed = (id: string) => {
+    const updated = { ...checkedRaw, [id]: !checkedRaw[id] };
+    const count = medList.filter((m) => updated[m.id]).length;
     onChange({ ...data, medication: setDateValue(data.medication, activeDate, count > 0 ? 1 : 0, JSON.stringify(updated)) });
   };
 
   const addMed = () => {
     const name = newMed.trim();
-    if (!name || medList.includes(name)) return;
-    setMedList((prev) => [...prev, name]);
+    if (!name || medList.some((m) => m.name === name)) return;
+    addMedication(name);
     setNewMed("");
     setAdding(false);
   };
 
-  const removeMed = (name: string) => {
-    setMedList((prev) => prev.filter((m) => m !== name));
+  const removeMed = (id: string) => {
+    removeMedication(id);
     const updated = { ...checkedRaw };
-    delete updated[name];
-    const count = medList.filter((m) => m !== name && updated[m]).length;
+    delete updated[id];
+    const count = medList.filter((m) => m.id !== id && updated[m.id]).length;
     onChange({ ...data, medication: setDateValue(data.medication, activeDate, count > 0 ? 1 : 0, JSON.stringify(updated)) });
   };
 
@@ -298,18 +302,18 @@ function MedicationCard({ data, onChange, activeDate }: Props) {
 
       <ul className="space-y-2 flex-1">
         {medList.map((med) => {
-          const checked = !!checkedRaw[med];
+          const checked = !!checkedRaw[med.id];
           return (
-            <li key={med} className="flex items-center gap-3 group">
+            <li key={med.id} className="flex items-center gap-3 group">
               <button
-                onClick={() => toggleMed(med)}
+                onClick={() => toggleMed(med.id)}
                 className="w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all"
                 style={checked ? { background: "var(--primary)", borderColor: "var(--primary)" } : { borderColor: "var(--border)" }}
               >
                 {checked && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </button>
-              <span className="flex-1 text-sm text-foreground" style={checked ? { textDecoration: "line-through", color: "var(--muted-foreground)" } : {}}>{med}</span>
-              <button onClick={() => removeMed(med)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground text-xs transition-all">✕</button>
+              <span className="flex-1 text-sm text-foreground" style={checked ? { textDecoration: "line-through", color: "var(--muted-foreground)" } : {}}>{med.name}</span>
+              <button onClick={() => removeMed(med.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground text-xs transition-all">✕</button>
             </li>
           );
         })}
@@ -610,7 +614,7 @@ function CustomHabitsCard({ data, onChange, activeDate }: Props) {
 
   const saveHabit = () => {
     if (!form.name.trim()) return;
-    onChange({ ...data, custom: [...data.custom, { id: Date.now().toString(), name: form.name.trim(), unit: form.unit, target: form.target, color: "#374151", icon: form.icon, entries: [] }] });
+    onChange({ ...data, custom: [...data.custom, { id: crypto.randomUUID(), name: form.name.trim(), unit: form.unit, target: form.target, color: "#374151", icon: form.icon, entries: [] }] });
     setForm({ name: "", unit: "times", target: 1, icon: ICONS[0] });
     setAdding(false);
   };
@@ -754,9 +758,9 @@ function DateNavigator({ activeDate, onChange }: { activeDate: string; onChange:
 }
 
 /* ─── Layout ─── */
-export default function HabitsView({ data, onChange, biometrics }: Omit<Props, "activeDate">) {
+export default function HabitsView({ data, onChange, biometrics, medications }: Omit<Props, "activeDate">) {
   const [activeDate, setActiveDate] = useState(TODAY);
-  const cardProps = { data, onChange, activeDate, biometrics };
+  const cardProps = { data, onChange, activeDate, biometrics, medications };
 
   return (
     <div className="space-y-6">

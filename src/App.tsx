@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { defaultData, defaultBiometrics } from "./data";
-import type { HabitData, BiometricData } from "./types";
+import { defaultBiometrics } from "./data";
+import type { HabitData } from "./types";
 import Dashboard from "./components/Dashboard";
 import HabitsView from "./components/HabitsView";
 import ProfileView from "./components/ProfileView";
@@ -9,6 +9,9 @@ import { useAuth } from "./auth/AuthProvider";
 import SignInScreen from "./auth/SignInScreen";
 import SetupNeeded from "./auth/SetupNeeded";
 import { isSupabaseConfigured } from "./lib/supabase";
+import { useHabitData } from "./hooks/useHabitData";
+import { useProfile } from "./hooks/useProfile";
+import { useMedications } from "./hooks/useMedications";
 
 type Tab = "habits" | "dashboard" | "coaches" | "profile";
 
@@ -27,9 +30,12 @@ function completedToday(data: HabitData): number {
 
 export default function App() {
   const { session, loading, signOut } = useAuth();
+  const userId = session?.user.id ?? null;
   const [tab, setTab] = useState<Tab>("habits");
-  const [data, setData] = useState<HabitData>(defaultData);
-  const [biometrics] = useState<BiometricData>(defaultBiometrics);
+  const { data, setData } = useHabitData(userId);
+  const { profile, updateProfile } = useProfile(userId);
+  const medications = useMedications(userId);
+  const biometrics = defaultBiometrics;
 
   if (!isSupabaseConfigured) {
     return <SetupNeeded />;
@@ -42,6 +48,13 @@ export default function App() {
   if (!session) {
     return <SignInScreen />;
   }
+
+  const initials = (profile.name || session.user.email || "?")
+    .split(/\s+/)
+    .map((s) => s[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   const done = completedToday(data);
   const total = 6 + data.custom.length;
@@ -102,7 +115,7 @@ export default function App() {
                 : { background: "var(--secondary)", color: "var(--secondary-foreground)", borderColor: "transparent" }}
               title="Profile"
             >
-              AJ
+              {initials}
             </button>
 
             <button
@@ -117,14 +130,24 @@ export default function App() {
       </header>
 
       <main className="w-full px-4 sm:px-6 py-8">
-        {tab === "habits" && <HabitsView data={data} onChange={setData} biometrics={biometrics} />}
+        {tab === "habits" && (
+          <HabitsView data={data} onChange={setData} biometrics={biometrics} medications={medications} />
+        )}
         {tab === "dashboard" && <Dashboard data={data} biometrics={biometrics} />}
         {tab === "coaches" && <CoachView />}
-        {tab === "profile" && <ProfileView />}
+        {tab === "profile" && (
+          <ProfileView
+            email={session.user.email ?? ""}
+            profile={profile}
+            onUpdateProfile={updateProfile}
+            habitData={data}
+            onSignOut={signOut}
+          />
+        )}
       </main>
 
       <footer className="border-t border-border text-center py-6 text-xs text-muted-foreground px-4 sm:px-6">
-        Yes Habits · {new Date().getFullYear()} · Stay consistent, stay you.
+        mybestself · {new Date().getFullYear()} · Stay consistent, stay you.
       </footer>
     </div>
   );

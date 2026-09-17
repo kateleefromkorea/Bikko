@@ -133,8 +133,11 @@ export default function CoachView() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h2 className="text-5xl font-extrabold text-foreground mb-1">Find a Health Coach</h2>
-        <p className="text-muted-foreground text-sm">Connect with certified professionals matched to your goals</p>
+        <div className="flex items-center gap-3 mb-1">
+          <h2 className="text-5xl font-extrabold text-foreground">Find a Health Coach</h2>
+          <span className="text-xs px-2 py-1 rounded-full font-bold bg-secondary text-secondary-foreground self-end mb-2">Coming soon</span>
+        </div>
+        <p className="text-muted-foreground text-sm">Sample coaches shown for preview — booking isn't live yet.</p>
       </div>
 
       {/* Search + sort bar */}

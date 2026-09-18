@@ -1,4 +1,4 @@
-# Bikko
+# Fikko
 
 React + Vite + Tailwind CSS app (originally exported from Figma Make, now a standalone project backed by Supabase).
 

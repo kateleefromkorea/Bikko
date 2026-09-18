@@ -68,9 +68,9 @@ export default function App() {
           {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold text-primary-foreground bg-primary flex-shrink-0">
-              B
+              F
             </div>
-            <span className="hidden sm:inline text-xl font-extrabold text-foreground">Bikko</span>
+            <span className="hidden sm:inline text-xl font-extrabold text-foreground">Fikko</span>
           </div>
 
           {/* Progress pill */}
@@ -131,7 +131,7 @@ export default function App() {
 
       <main className="w-full px-4 sm:px-6 py-8">
         {tab === "habits" && (
-          <HabitsView data={data} onChange={setData} biometrics={biometrics} medications={medications} />
+          <HabitsView data={data} onChange={setData} biometrics={biometrics} medications={medications} userId={userId} />
         )}
         {tab === "dashboard" && <Dashboard data={data} biometrics={biometrics} />}
         {tab === "coaches" && <CoachView />}
@@ -147,7 +147,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-border text-center py-6 text-xs text-muted-foreground px-4 sm:px-6">
-        Bikko · {new Date().getFullYear()} · Stay consistent, stay you.
+        Fikko · {new Date().getFullYear()} · Stay consistent, stay you.
       </footer>
     </div>
   );

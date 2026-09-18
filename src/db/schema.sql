@@ -1,4 +1,4 @@
--- Bikko schema
+-- Fikko schema
 -- Run this in the Supabase SQL editor (Project → SQL Editor → New query).
 -- Safe to re-run: drops and recreates everything below from scratch.
 

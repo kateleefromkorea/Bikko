@@ -26,6 +26,17 @@ export interface HabitData {
   custom: CustomHabit[];
 }
 
+export type MealKey = "breakfast" | "lunch" | "dinner" | "snacks";
+
+export interface FoodLogItem {
+  id: string;
+  meal: MealKey;
+  name: string;
+  grams: number;
+  caloriesPer100g: number;
+  calories: number;
+}
+
 export interface BiometricEntry {
   date: string;
   value: number;

@@ -1,6 +1,8 @@
 import { useState } from "react";
-import type { HabitData, BiometricData, HabitEntry, CustomHabit } from "../types";
+import type { HabitData, BiometricData, HabitEntry, CustomHabit, MealKey } from "../types";
 import type { useMedications } from "../hooks/useMedications";
+import { useFoodLog } from "../hooks/useFoodLog";
+import FoodLogModal from "./FoodLogModal";
 
 type Medications = ReturnType<typeof useMedications>;
 
@@ -10,6 +12,7 @@ interface Props {
   activeDate: string;
   biometrics: BiometricData;
   medications: Medications;
+  userId: string | null;
 }
 
 const TODAY = new Date().toISOString().split("T")[0];
@@ -43,39 +46,28 @@ function ProgressBar({ value, max, color = "var(--primary)" }: { value: number; 
 }
 
 /* ─── Calorie Tracker ─── */
-type MealKey = "breakfast" | "lunch" | "dinner" | "snacks";
 interface MealCalories { breakfast: number; lunch: number; dinner: number; snacks: number; }
 
-const MEALS: { key: MealKey; label: string; icon: string; placeholder: string }[] = [
-  { key: "breakfast", label: "Breakfast", icon: "🌅", placeholder: "e.g. 420" },
-  { key: "lunch",     label: "Lunch",     icon: "☀️",  placeholder: "e.g. 650" },
-  { key: "dinner",    label: "Dinner",    icon: "🌆",  placeholder: "e.g. 780" },
-  { key: "snacks",    label: "Snacks",    icon: "🍎",  placeholder: "e.g. 200" },
+const MEALS: { key: MealKey; label: string; icon: string }[] = [
+  { key: "breakfast", label: "Breakfast", icon: "🌅" },
+  { key: "lunch",     label: "Lunch",     icon: "☀️" },
+  { key: "dinner",    label: "Dinner",    icon: "🌆" },
+  { key: "snacks",    label: "Snacks",    icon: "🍎" },
 ];
 
-function FoodCard({ data, onChange, activeDate }: Props) {
+function FoodCard({ data, onChange, activeDate, userId }: Props) {
   const entry = getEntry(data.food, activeDate);
   const meals: MealCalories = entry?.note
     ? (JSON.parse(entry.note) as MealCalories)
     : { breakfast: 0, lunch: 0, dinner: 0, snacks: 0 };
 
-  const [inputs, setInputs] = useState<Record<MealKey, string>>({ breakfast: "", lunch: "", dinner: "", snacks: "" });
+  const foodLog = useFoodLog(userId, activeDate, data, onChange);
+  const [openMeal, setOpenMeal] = useState<MealKey | null>(null);
 
   const target = 2000;
   const total = meals.breakfast + meals.lunch + meals.dinner + meals.snacks;
   const pct = Math.min((total / target) * 100, 100);
   const overTarget = total > target;
-
-  const setMeal = (key: MealKey, value: number) => {
-    const updated = { ...meals, [key]: Math.max(0, value) };
-    const newTotal = updated.breakfast + updated.lunch + updated.dinner + updated.snacks;
-    onChange({ ...data, food: setDateValue(data.food, activeDate, newTotal, JSON.stringify(updated)) });
-  };
-
-  const addToMeal = (key: MealKey) => {
-    const n = parseInt(inputs[key]);
-    if (!isNaN(n) && n > 0) { setMeal(key, (meals[key] ?? 0) + n); setInputs((p) => ({ ...p, [key]: "" })); }
-  };
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 h-full flex flex-col">
@@ -103,9 +95,10 @@ function FoodCard({ data, onChange, activeDate }: Props) {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
-        {MEALS.map(({ key, label, icon, placeholder }) => {
+        {MEALS.map(({ key, label, icon }) => {
           const val = meals[key] ?? 0;
           const mealPct = Math.min((val / (target / 4)) * 100, 100);
+          const itemCount = foodLog.items.filter((i) => i.meal === key).length;
           return (
             <div key={key} className="rounded-xl border border-border bg-muted p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between">
@@ -113,23 +106,17 @@ function FoodCard({ data, onChange, activeDate }: Props) {
                   <span className="text-base">{icon}</span>
                   <span className="text-sm font-bold text-secondary-foreground">{label}</span>
                 </div>
-                <span className="text-lg font-extrabold text-foreground">{val}</span>
+                <span className="text-lg font-extrabold text-foreground">{Math.round(val)}</span>
               </div>
               <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${mealPct}%`, background: "var(--amber)" }} />
               </div>
-              <div className="flex gap-1.5">
-                <input
-                  value={inputs[key]}
-                  onChange={(e) => setInputs((p) => ({ ...p, [key]: e.target.value }))}
-                  onKeyDown={(e) => e.key === "Enter" && addToMeal(key)}
-                  placeholder={placeholder}
-                  type="number" min="0"
-                  className="flex-1 min-w-0 rounded-lg border border-border px-3 py-2 text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-                <button onClick={() => addToMeal(key)} className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">+</button>
-              </div>
-              {val > 0 && <button onClick={() => setMeal(key, 0)} className="text-xs text-muted-foreground hover:text-foreground text-left transition-all">Clear</button>}
+              <button
+                onClick={() => setOpenMeal(key)}
+                className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all"
+              >
+                {itemCount > 0 ? `Log food · ${itemCount} item${itemCount === 1 ? "" : "s"}` : "Log food"}
+              </button>
             </div>
           );
         })}
@@ -139,10 +126,22 @@ function FoodCard({ data, onChange, activeDate }: Props) {
         <div className="mt-5 flex gap-3 flex-wrap">
           {MEALS.map(({ key, label }) => meals[key] > 0 ? (
             <span key={key} className="text-xs px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground font-semibold">
-              {label}: {meals[key]} kcal · {Math.round((meals[key] / total) * 100)}%
+              {label}: {Math.round(meals[key])} kcal · {Math.round((meals[key] / total) * 100)}%
             </span>
           ) : null)}
         </div>
+      )}
+
+      {openMeal && (
+        <FoodLogModal
+          meal={openMeal}
+          mealLabel={MEALS.find((m) => m.key === openMeal)!.label}
+          items={foodLog.items.filter((i) => i.meal === openMeal)}
+          onAdd={(food) => foodLog.addItem(openMeal, food)}
+          onUpdateGrams={foodLog.updateGrams}
+          onDelete={foodLog.deleteItem}
+          onClose={() => setOpenMeal(null)}
+        />
       )}
     </div>
   );
@@ -758,9 +757,9 @@ function DateNavigator({ activeDate, onChange }: { activeDate: string; onChange:
 }
 
 /* ─── Layout ─── */
-export default function HabitsView({ data, onChange, biometrics, medications }: Omit<Props, "activeDate">) {
+export default function HabitsView({ data, onChange, biometrics, medications, userId }: Omit<Props, "activeDate">) {
   const [activeDate, setActiveDate] = useState(TODAY);
-  const cardProps = { data, onChange, activeDate, biometrics, medications };
+  const cardProps = { data, onChange, activeDate, biometrics, medications, userId };
 
   return (
     <div className="space-y-6">

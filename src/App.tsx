@@ -68,9 +68,9 @@ export default function App() {
           {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold text-primary-foreground bg-primary flex-shrink-0">
-              Y
+              B
             </div>
-            <span className="hidden sm:inline text-xl font-extrabold text-foreground">mybestself</span>
+            <span className="hidden sm:inline text-xl font-extrabold text-foreground">Bikko</span>
           </div>
 
           {/* Progress pill */}
@@ -147,7 +147,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-border text-center py-6 text-xs text-muted-foreground px-4 sm:px-6">
-        mybestself · {new Date().getFullYear()} · Stay consistent, stay you.
+        Bikko · {new Date().getFullYear()} · Stay consistent, stay you.
       </footer>
     </div>
   );

@@ -126,7 +126,7 @@ export default function ProfileView({ email, profile, onUpdateProfile, habitData
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "mybestself-export.json";
+    a.download = "bikko-export.json";
     a.click();
     URL.revokeObjectURL(url);
   };

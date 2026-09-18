@@ -162,7 +162,7 @@ function ExerciseCard({ activeDate, biometrics }: Props) {
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: "rgba(255,117,117,0.15)" }}>🏃</div>
         <div>
-          <h3 className="font-extrabold text-foreground">Activity</h3>
+          <h3 className="font-extrabold text-foreground text-xl">Activity</h3>
           <p className="text-xs text-muted-foreground">From Apple Watch</p>
         </div>
       </div>
@@ -232,7 +232,7 @@ function WaterCard({ data, onChange, activeDate, biometrics }: Props) {
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: "rgba(137,196,244,0.2)" }}>💧</div>
         <div>
-          <h3 className="font-extrabold text-foreground">Water Intake</h3>
+          <h3 className="font-extrabold text-foreground text-xl">Water Intake</h3>
           <p className="text-xs text-muted-foreground">Target: {nudgeTarget} glasses/day</p>
         </div>
         <span className="ml-auto text-3xl font-extrabold text-foreground">{glasses}/{nudgeTarget}</span>
@@ -294,7 +294,7 @@ function MedicationCard({ data, onChange, activeDate, medications }: Props) {
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: "rgba(126,220,206,0.2)" }}>💊</div>
         <div className="flex-1">
-          <h3 className="font-extrabold text-foreground">Medication</h3>
+          <h3 className="font-extrabold text-foreground text-xl">Medication</h3>
           <p className="text-xs text-muted-foreground">{checkedCount}/{medList.length} taken</p>
         </div>
         {allTaken && <span className="text-xs px-2 py-1 rounded-full font-bold text-accent-foreground" style={{ background: "var(--teal)" }}>All done ✓</span>}
@@ -412,7 +412,7 @@ function SleepCard({ data, onChange, activeDate, biometrics }: Props) {
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: "rgba(184,174,255,0.2)" }}>🌙</div>
         <div>
-          <h3 className="font-extrabold text-foreground text-lg">Sleep</h3>
+          <h3 className="font-extrabold text-foreground text-xl">Sleep</h3>
           <p className="text-xs text-muted-foreground">Watch data · subjective · context</p>
         </div>
         {totalH !== null && (
@@ -575,7 +575,7 @@ function MoodCard({ data, onChange, activeDate, biometrics }: Props) {
     <div className={cardBase}>
       <div className="flex items-center gap-2 mb-4">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base" style={{ background: "rgba(255,179,193,0.25)" }}>😊</div>
-        <h3 className="font-extrabold text-foreground text-sm">Mood</h3>
+        <h3 className="font-extrabold text-foreground text-xl">Mood</h3>
       </div>
 
       {rec !== null && (

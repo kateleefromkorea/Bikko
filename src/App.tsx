@@ -63,18 +63,18 @@ export default function App() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-card">
-        <div className="w-full px-4 sm:px-6 flex items-center gap-3 h-16">
+        <div className="w-full px-3 sm:px-6 flex items-center gap-2 sm:gap-3 h-16">
 
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold text-primary-foreground bg-primary">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-bold text-primary-foreground bg-primary flex-shrink-0">
               Y
             </div>
-            <span className="text-xl font-extrabold text-foreground">mybestself</span>
+            <span className="hidden sm:inline text-xl font-extrabold text-foreground">mybestself</span>
           </div>
 
           {/* Progress pill */}
-          <div className="flex items-center gap-2 ml-3 px-3 py-1.5 rounded-full bg-muted border border-border">
+          <div className="hidden md:flex items-center gap-2 ml-3 px-3 py-1.5 rounded-full bg-muted border border-border flex-shrink-0">
             <div className="w-20 h-1.5 rounded-full bg-secondary overflow-hidden">
               <div
                 className="h-full rounded-full bg-primary transition-all duration-700"
@@ -85,21 +85,21 @@ export default function App() {
           </div>
 
           {/* Nav + profile */}
-          <nav className="ml-auto flex items-center gap-1">
+          <nav className="ml-auto flex items-center gap-1 overflow-x-auto min-w-0">
             {([
               { id: "habits", label: "Habits" },
               { id: "dashboard", label: "Dashboard" },
-              { id: "coaches", label: "Find a Coach" },
+              { id: "coaches", label: "Coach" },
             ] as { id: Tab; label: string }[]).map(({ id, label }) => (
               <button
                 key={id}
                 onClick={() => setTab(id)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                className="flex items-center gap-1.5 px-2.5 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-all flex-shrink-0 whitespace-nowrap"
                 style={tab === id ? { background: "var(--primary)", color: "var(--primary-foreground)" } : { color: "var(--muted-foreground)" }}
               >
                 {label}
                 {id === "coaches" && (
-                  <span className="text-xs font-bold px-1.5 py-0.5 rounded-md" style={tab === id ? { background: "rgba(255,255,255,0.25)", color: "#fff" } : { background: "var(--secondary)", color: "var(--secondary-foreground)" }}>
+                  <span className="hidden sm:inline text-xs font-bold px-1.5 py-0.5 rounded-md" style={tab === id ? { background: "rgba(255,255,255,0.25)", color: "#fff" } : { background: "var(--secondary)", color: "var(--secondary-foreground)" }}>
                     Beta
                   </span>
                 )}
@@ -109,7 +109,7 @@ export default function App() {
             {/* Profile avatar — far right */}
             <button
               onClick={() => setTab("profile")}
-              className="ml-2 w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all flex-shrink-0"
+              className="ml-1 sm:ml-2 w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all flex-shrink-0"
               style={tab === "profile"
                 ? { background: "var(--primary)", color: "#fff", borderColor: "var(--primary)" }
                 : { background: "var(--secondary)", color: "var(--secondary-foreground)", borderColor: "transparent" }}
@@ -120,7 +120,7 @@ export default function App() {
 
             <button
               onClick={() => signOut()}
-              className="ml-1 px-3 py-2 rounded-xl text-sm font-semibold text-muted-foreground"
+              className="ml-1 px-2 sm:px-3 py-2 rounded-xl text-sm font-semibold text-muted-foreground flex-shrink-0 whitespace-nowrap"
               title="Sign out"
             >
               Sign out

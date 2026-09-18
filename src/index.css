@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800;900&display=swap');
 @import 'tailwindcss';
 
 @theme inline {
@@ -61,6 +61,10 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', system-ui, sans-serif;
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }

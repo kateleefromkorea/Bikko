@@ -8,6 +8,7 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 import type { HabitData, BiometricData, HabitEntry, BiometricEntry, CustomHabit } from "../types";
+import PageHeader from "./PageHeader";
 
 interface Props {
   data: HabitData;
@@ -291,13 +292,11 @@ export default function Dashboard({ data, biometrics }: Props) {
     <div className="space-y-10">
 
       {/* ── Header ── */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="text-5xl font-extrabold text-foreground">Dashboard</h2>
-          <p className="text-muted-foreground text-sm mt-1">{periodLabel} · synced from Apple Watch & Apple Health</p>
-        </div>
-        <PeriodToggle period={period} onChange={setPeriod} />
-      </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle={`${periodLabel} · synced from Apple Watch & Apple Health`}
+        action={<PeriodToggle period={period} onChange={setPeriod} />}
+      />
 
       {/* ── Today's overview ── */}
       <Section title="Today's Overview" sub="Snapshot from your latest device sync">

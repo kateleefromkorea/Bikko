@@ -1,4 +1,5 @@
 import { useState } from "react";
+import PageHeader from "./PageHeader";
 
 interface Coach {
   id: string;
@@ -132,13 +133,15 @@ export default function CoachView() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-3 mb-1">
-          <h2 className="text-5xl font-extrabold text-foreground">Find a Health Coach</h2>
-          <span className="text-xs px-2 py-1 rounded-full font-bold bg-secondary text-secondary-foreground self-end mb-2">Coming soon</span>
-        </div>
-        <p className="text-muted-foreground text-sm">Sample coaches shown for preview — booking isn't live yet.</p>
-      </div>
+      <PageHeader
+        title="Find a Health Coach"
+        subtitle="Sample coaches shown for preview — booking isn't live yet."
+        badge={
+          <span className="text-xs px-2 py-1 rounded-full font-bold bg-secondary text-secondary-foreground">
+            Coming soon
+          </span>
+        }
+      />
 
       {/* Search + sort bar */}
       <div className="flex flex-wrap gap-3 items-center">

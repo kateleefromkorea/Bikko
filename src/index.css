@@ -71,9 +71,11 @@ h1, h2 {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-.squiggle-bg {
-  background-color: #eee6f0;
-  background-image: url("/bg-squiggle.svg");
-  background-size: 480px auto;
-  background-repeat: repeat;
+/* Light purple background with a subtle dot texture — used on the sign-in
+   screen and the app shell alike, since it's calm enough to sit behind text. */
+.dot-bg {
+  background-color: var(--background);
+  background-image: radial-gradient(circle, var(--lilac) 1.6px, transparent 1.6px);
+  background-size: 26px 26px;
+  background-position: 0 0;
 }

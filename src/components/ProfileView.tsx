@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ProfileRow } from "../hooks/useProfile";
 import type { HabitData } from "../types";
+import PageHeader from "./PageHeader";
 
 interface Draft {
   name: string;
@@ -161,10 +162,7 @@ export default function ProfileView({ email, profile, onUpdateProfile, habitData
   return (
     <div className="space-y-8">
       {/* Page header */}
-      <div>
-        <h2 className="text-5xl font-extrabold text-foreground mb-1">Profile</h2>
-        <p className="text-muted-foreground text-sm">Manage your personal details and connected devices</p>
-      </div>
+      <PageHeader title="Profile" subtitle="Manage your personal details and connected devices" />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
         {/* Left: avatar card + daily goals */}

@@ -61,7 +61,7 @@ export default function App() {
   const pct = Math.round((done / total) * 100);
 
   return (
-    <div className="min-h-screen squiggle-bg">
+    <div className="min-h-screen dot-bg">
       <header className="sticky top-0 z-40 border-b border-border bg-card">
         <div className="w-full px-3 sm:px-6 flex items-center gap-2 sm:gap-3 h-16">
 

@@ -3,6 +3,14 @@ import type { HabitData, BiometricData, HabitEntry, CustomHabit, MealKey } from 
 import type { useMedications } from "../hooks/useMedications";
 import { useFoodLog } from "../hooks/useFoodLog";
 import FoodLogModal from "./FoodLogModal";
+import PageHeader from "./PageHeader";
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
 
 type Medications = ReturnType<typeof useMedications>;
 
@@ -764,12 +772,11 @@ export default function HabitsView({ data, onChange, biometrics, medications, us
   return (
     <div className="space-y-6">
       {/* Header + date navigator */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="text-5xl font-extrabold text-foreground">Hey there — How are you doing today?</h2>
-        </div>
-        <DateNavigator activeDate={activeDate} onChange={setActiveDate} />
-      </div>
+      <PageHeader
+        title={greeting()}
+        subtitle="How are you doing today?"
+        action={<DateNavigator activeDate={activeDate} onChange={setActiveDate} />}
+      />
 
       {/* Top row: Calorie (7) + Exercise (3) */}
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6 items-stretch">

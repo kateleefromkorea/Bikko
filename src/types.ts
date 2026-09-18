@@ -28,6 +28,8 @@ export interface HabitData {
 
 export type MealKey = "breakfast" | "lunch" | "dinner" | "snacks";
 
+export type TimeOfDay = "breakfast" | "midday" | "night";
+
 export interface FoodLogItem {
   id: string;
   meal: MealKey;

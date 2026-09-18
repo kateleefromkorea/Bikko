@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { HabitData, BiometricData, HabitEntry, CustomHabit, MealKey } from "../types";
+import type { HabitData, BiometricData, HabitEntry, CustomHabit, MealKey, TimeOfDay } from "../types";
 import type { useMedications } from "../hooks/useMedications";
 import { useFoodLog } from "../hooks/useFoodLog";
 import FoodLogModal from "./FoodLogModal";
@@ -42,6 +42,16 @@ const btnPrimary =
 const cardBase = "rounded-2xl p-6 border border-border bg-card h-full flex flex-col";
 const ICONS = ["⭐", "📚", "🧘", "🎯", "💪", "🎨", "🌿", "🐾", "🎵", "✍️", "🧠", "🛁"];
 
+// Short, dynamic one-liner shown under a card's title — a quick read on how
+// today is going for that habit, without having to parse the numbers below.
+function CommentBubble({ text }: { text: string }) {
+  return (
+    <div className="rounded-xl bg-muted border border-border px-3 py-2 mb-4">
+      <p className="text-xs text-secondary-foreground">{text}</p>
+    </div>
+  );
+}
+
 function ProgressBar({ value, max, color = "var(--primary)" }: { value: number; max: number; color?: string }) {
   return (
     <div className="h-2 rounded-full bg-secondary overflow-hidden">
@@ -77,6 +87,12 @@ function FoodCard({ data, onChange, activeDate, userId }: Props) {
   const pct = Math.min((total / target) * 100, 100);
   const overTarget = total > target;
 
+  const foodComment = total === 0
+    ? "Nothing logged yet — tap a meal below to get started."
+    : overTarget
+      ? `You're ${Math.round(total - target).toLocaleString()} kcal over today's target.`
+      : `${Math.round(target - total).toLocaleString()} kcal left to reach your target.`;
+
   return (
     <div className="rounded-2xl border border-border bg-card p-6 h-full flex flex-col">
       <div className="flex items-start justify-between mb-6">
@@ -92,6 +108,8 @@ function FoodCard({ data, onChange, activeDate, userId }: Props) {
           <p className="text-xs text-muted-foreground">{overTarget ? `${(total - target).toLocaleString()} over` : `${(target - total).toLocaleString()} remaining`}</p>
         </div>
       </div>
+
+      <CommentBubble text={foodComment} />
 
       <div className="mb-8">
         <div className="h-3 rounded-full bg-secondary overflow-hidden">
@@ -163,6 +181,11 @@ function ExerciseCard({ activeDate, biometrics }: Props) {
   const vo2        = biometrics?.vo2max?.find((e) => e.date === activeDate)?.value ?? null;
   const stepsGoal  = 10000;
   const stepsPct   = steps !== null ? Math.min((steps / stepsGoal) * 100, 100) : 0;
+  const exerciseComment = steps !== null
+    ? (steps >= stepsGoal
+        ? "Daily step goal reached — nice work!"
+        : `${(stepsGoal - steps).toLocaleString()} steps left to hit today's goal.`)
+    : null;
 
   return (
     <div className={cardBase}>
@@ -173,6 +196,8 @@ function ExerciseCard({ activeDate, biometrics }: Props) {
           <p className="text-xs text-muted-foreground">From Apple Watch</p>
         </div>
       </div>
+
+      {exerciseComment && <CommentBubble text={exerciseComment} />}
 
       {steps !== null ? (
         <>
@@ -263,16 +288,29 @@ function WaterCard({ data, onChange, activeDate, biometrics }: Props) {
   );
 }
 
-/* ─── Medication ─── */
+/* ─── Medications & Supplements ─── */
+const TIME_SLOTS: { key: TimeOfDay; label: string; icon: string }[] = [
+  { key: "breakfast", label: "Breakfast", icon: "🌅" },
+  { key: "midday",    label: "Midday",    icon: "☀️" },
+  { key: "night",     label: "Night",     icon: "🌙" },
+];
+
 function MedicationCard({ data, onChange, activeDate, medications }: Props) {
-  const { medications: medList, addMedication, removeMedication } = medications;
+  const { medications: medList, addMedication, removeMedication, updateTimeOfDay } = medications;
   const [newMed, setNewMed] = useState("");
+  const [newSlot, setNewSlot] = useState<TimeOfDay>("breakfast");
   const [adding, setAdding] = useState(false);
 
   const entry = getEntry(data.medication, activeDate);
   const checkedRaw: Record<string, boolean> = entry?.note ? JSON.parse(entry.note) : {};
   const checkedCount = medList.filter((m) => checkedRaw[m.id]).length;
   const allTaken = medList.length > 0 && checkedCount === medList.length;
+
+  const medComment = medList.length === 0
+    ? "Add your medications or supplements to build a daily schedule."
+    : allTaken
+      ? "All done for today — nice work staying on track!"
+      : `${medList.length - checkedCount} left to take today.`;
 
   const toggleMed = (id: string) => {
     const updated = { ...checkedRaw, [id]: !checkedRaw[id] };
@@ -283,8 +321,9 @@ function MedicationCard({ data, onChange, activeDate, medications }: Props) {
   const addMed = () => {
     const name = newMed.trim();
     if (!name || medList.some((m) => m.name === name)) return;
-    addMedication(name);
+    addMedication(name, newSlot);
     setNewMed("");
+    setNewSlot("breakfast");
     setAdding(false);
   };
 
@@ -301,48 +340,90 @@ function MedicationCard({ data, onChange, activeDate, medications }: Props) {
       <div className="flex items-center gap-3 mb-4">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: "rgba(126,220,206,0.2)" }}>💊</div>
         <div className="flex-1">
-          <h3 className="font-extrabold text-foreground text-xl">Medication</h3>
+          <h3 className="font-extrabold text-foreground text-xl">Medications & Supplements</h3>
           <p className="text-xs text-muted-foreground">{checkedCount}/{medList.length} taken</p>
         </div>
         {allTaken && <span className="text-xs px-2 py-1 rounded-full font-bold text-accent-foreground" style={{ background: "var(--teal)" }}>All done ✓</span>}
       </div>
 
-      <ul className="space-y-2 flex-1">
-        {medList.map((med) => {
-          const checked = !!checkedRaw[med.id];
+      <CommentBubble text={medComment} />
+
+      <div className="space-y-4 flex-1">
+        {medList.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">No medications or supplements added yet.</p>
+        )}
+        {TIME_SLOTS.map(({ key, label, icon }) => {
+          const slotMeds = medList.filter((m) => m.time_of_day === key);
+          if (slotMeds.length === 0) return null;
           return (
-            <li key={med.id} className="flex items-center gap-3 group">
-              <button
-                onClick={() => toggleMed(med.id)}
-                className="w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all"
-                style={checked ? { background: "var(--primary)", borderColor: "var(--primary)" } : { borderColor: "var(--border)" }}
-              >
-                {checked && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-              </button>
-              <span className="flex-1 text-sm text-foreground" style={checked ? { textDecoration: "line-through", color: "var(--muted-foreground)" } : {}}>{med.name}</span>
-              <button onClick={() => removeMed(med.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground text-xs transition-all">✕</button>
-            </li>
+            <div key={key}>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <span>{icon}</span> {label}
+              </p>
+              <ul className="space-y-2">
+                {slotMeds.map((med) => {
+                  const checked = !!checkedRaw[med.id];
+                  return (
+                    <li key={med.id} className="flex items-center gap-2 group">
+                      <button
+                        onClick={() => toggleMed(med.id)}
+                        className="w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-all"
+                        style={checked ? { background: "var(--primary)", borderColor: "var(--primary)" } : { borderColor: "var(--border)" }}
+                      >
+                        {checked && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                      </button>
+                      <span className="flex-1 text-sm text-foreground" style={checked ? { textDecoration: "line-through", color: "var(--muted-foreground)" } : {}}>{med.name}</span>
+                      <select
+                        value={med.time_of_day}
+                        onChange={(e) => updateTimeOfDay(med.id, e.target.value as TimeOfDay)}
+                        title="Move to a different time of day"
+                        className="text-xs rounded-lg border border-border bg-card px-1.5 py-1 text-muted-foreground opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all"
+                      >
+                        {TIME_SLOTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+                      </select>
+                      <button onClick={() => removeMed(med.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground text-xs transition-all">✕</button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           );
         })}
-      </ul>
+      </div>
 
       <div className="mt-4 pt-4 border-t border-border">
         {adding ? (
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
             <input
               value={newMed}
               onChange={(e) => setNewMed(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") addMed(); if (e.key === "Escape") setAdding(false); }}
-              placeholder="Medication name…"
+              placeholder="Medication or supplement name…"
               autoFocus
               className="flex-1 rounded-xl border border-border px-3 py-2 text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
-            <button onClick={addMed} className="px-3 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">Add</button>
-            <button onClick={() => setAdding(false)} className="px-3 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm transition-all">✕</button>
+            <div className="flex gap-1.5">
+              {TIME_SLOTS.map((s) => (
+                <button
+                  key={s.key}
+                  onClick={() => setNewSlot(s.key)}
+                  className="flex-1 px-2 py-1.5 rounded-lg text-xs font-bold transition-all"
+                  style={newSlot === s.key
+                    ? { background: "var(--primary)", color: "var(--primary-foreground)" }
+                    : { background: "var(--muted)", color: "var(--muted-foreground)" }}
+                >
+                  {s.icon} {s.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button onClick={addMed} className="px-3 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">Add</button>
+              <button onClick={() => setAdding(false)} className="px-3 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm transition-all">✕</button>
+            </div>
           </div>
         ) : (
           <button onClick={() => setAdding(true)} className="w-full py-2 rounded-xl border border-dashed border-border text-muted-foreground text-sm hover:border-primary hover:text-primary transition-all">
-            + Add medication
+            + Add medication or supplement
           </button>
         )}
       </div>
@@ -413,6 +494,14 @@ function SleepCard({ data, onChange, activeDate, biometrics }: Props) {
 
   const STAGE_COLORS = ["var(--primary)", "var(--teal)", "var(--lavender)"];
 
+  const sleepComment = totalH === null
+    ? "Log how rested you feel below — no watch data for this date yet."
+    : totalH >= 7
+      ? "Solid night — you're in a healthy sleep range."
+      : totalH >= 5
+        ? "A bit short on sleep — try to wind down earlier tonight."
+        : "Low sleep total — prioritize rest tonight if you can.";
+
   return (
     <div className="rounded-2xl p-6 border border-border bg-card flex flex-col gap-6">
       {/* Card header */}
@@ -429,6 +518,8 @@ function SleepCard({ data, onChange, activeDate, biometrics }: Props) {
           </div>
         )}
       </div>
+
+      <CommentBubble text={sleepComment} />
 
       {/* Three-column body */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -577,6 +668,10 @@ function MoodCard({ data, onChange, activeDate, biometrics }: Props) {
   const mood = getEntry(data.mood, activeDate)?.value ?? 0;
   const set = (v: number) => onChange({ ...data, mood: setDateValue(data.mood, activeDate, v) });
   const rec = biometrics?.recoveryScore?.find((e) => e.date === activeDate)?.value ?? null;
+  const moodLabel = MOODS.find((m) => m.value === mood)?.label;
+  const moodComment = moodLabel
+    ? `Feeling ${moodLabel.toLowerCase()} today — thanks for checking in.`
+    : "How are you feeling today? Pick a mood below.";
 
   return (
     <div className={cardBase}>
@@ -584,6 +679,8 @@ function MoodCard({ data, onChange, activeDate, biometrics }: Props) {
         <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base" style={{ background: "rgba(255,179,193,0.25)" }}>😊</div>
         <h3 className="font-extrabold text-foreground text-xl">Mood</h3>
       </div>
+
+      <CommentBubble text={moodComment} />
 
       {rec !== null && (
         <div className="rounded-xl bg-muted border border-border px-3 py-2 mb-3">

@@ -103,7 +103,8 @@ create policy "custom_habit_entries are self-owned" on public.custom_habit_entri
 create table public.medications (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
-  name text not null
+  name text not null,
+  time_of_day text not null default 'breakfast' check (time_of_day in ('breakfast', 'midday', 'night'))
 );
 
 alter table public.medications enable row level security;

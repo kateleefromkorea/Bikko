@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { searchFoods, type FoodResult } from "../lib/usdaFoodSearch";
 import type { FoodLogItem, MealKey } from "../types";
 
@@ -27,6 +27,14 @@ export default function FoodLogModal({ meal, mealLabel, items, onAdd, onUpdateGr
   const [manual, setManual] = useState({ name: "", grams: "100", calories: "" });
 
   const total = items.reduce((sum, i) => sum + i.calories, 0);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   async function runSearch(e: React.FormEvent) {
     e.preventDefault();

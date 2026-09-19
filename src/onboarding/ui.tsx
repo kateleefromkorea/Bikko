@@ -2,6 +2,8 @@
 // every step looks identical without repeating the Tailwind strings.
 
 import type { ReactNode } from "react";
+import { Check } from "lucide-react";
+import type { LucideIcon } from "../lib/icons";
 
 export const inputCls =
   "rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all";
@@ -29,11 +31,11 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 
 /** Single-select card with an icon, title and supporting line. */
 export function SelectCard({
-  selected, onClick, icon, label, description,
+  selected, onClick, icon: Icon, label, description,
 }: {
   selected: boolean;
   onClick: () => void;
-  icon: string;
+  icon: LucideIcon;
   label: string;
   description?: string;
 }) {
@@ -48,16 +50,20 @@ export function SelectCard({
         : { borderColor: "var(--border)", background: "var(--card)" }}
     >
       <span
-        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
         style={{ background: selected ? "rgba(107,92,246,0.12)" : "var(--secondary)" }}
       >
-        {icon}
+        <Icon
+          size={18}
+          strokeWidth={2}
+          style={{ color: selected ? "var(--primary)" : "var(--muted-foreground)" }}
+        />
       </span>
       <span className="flex-1 min-w-0">
         <span className="block text-sm font-bold text-foreground">{label}</span>
         {description && <span className="block text-xs text-muted-foreground mt-0.5">{description}</span>}
       </span>
-      {selected && <span className="text-primary text-lg flex-shrink-0">✓</span>}
+      {selected && <Check size={18} strokeWidth={2.5} className="text-primary flex-shrink-0" />}
     </button>
   );
 }
@@ -95,14 +101,14 @@ export function Segmented<T extends string>({
   ariaLabel: string;
 }) {
   return (
-    <div role="group" aria-label={ariaLabel} className="inline-flex rounded-xl bg-secondary p-1 gap-1">
+    <div role="group" aria-label={ariaLabel} className="inline-flex rounded-full bg-secondary p-1 gap-1">
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
           aria-pressed={value === o.value}
-          className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+          className="px-3 py-1.5 rounded-full text-xs font-bold transition-all"
           style={value === o.value
             ? { background: "var(--primary)", color: "var(--primary-foreground)" }
             : { color: "var(--secondary-foreground)" }}

@@ -3,6 +3,8 @@ import type { ProfileRow } from "../hooks/useProfile";
 import type { HabitData } from "../types";
 import PageHeader from "./PageHeader";
 import { computeBaseline } from "../lib/metabolics";
+import { HABIT_ICONS, SOURCE_ICONS, type LucideIcon } from "../lib/icons";
+import { Watch } from "lucide-react";
 
 interface Draft {
   name: string;
@@ -28,7 +30,6 @@ interface Connector {
   id: string;
   name: string;
   description: string;
-  icon: string;
   connected: boolean;
   lastSync?: string;
 }
@@ -37,14 +38,14 @@ const ACTIVITY_LEVELS = ["Sedentary", "Lightly active", "Moderately active", "Ve
 const GENDERS = ["Male", "Female", "Non-binary", "Prefer not to say"];
 
 const INITIAL_CONNECTORS: Connector[] = [
-  { id: "apple-watch", name: "Apple Watch", description: "Sync heart rate, steps, workouts & sleep", icon: "⌚", connected: true, lastSync: "demo data" },
-  { id: "apple-health", name: "Apple Health", description: "Pull nutrition, body measurements & activity", icon: "🍎", connected: true, lastSync: "demo data" },
-  { id: "google-fit", name: "Google Fit", description: "Sync activity, heart points & workouts", icon: "🏃", connected: false },
-  { id: "fitbit", name: "Fitbit", description: "Import steps, sleep stages & heart rate", icon: "📊", connected: false },
-  { id: "garmin", name: "Garmin Connect", description: "Import GPS workouts, VO2 max & body battery", icon: "🛰️", connected: false },
-  { id: "whoop", name: "WHOOP", description: "Sync recovery score, strain & sleep performance", icon: "💪", connected: false },
-  { id: "oura", name: "Oura Ring", description: "Import readiness, sleep quality & activity", icon: "💍", connected: false },
-  { id: "samsung", name: "Samsung Health", description: "Sync steps, workouts & sleep from Galaxy Watch", icon: "📱", connected: false },
+  { id: "apple-watch", name: "Apple Watch", description: "Sync heart rate, steps, workouts & sleep", connected: true, lastSync: "demo data" },
+  { id: "apple-health", name: "Apple Health", description: "Pull nutrition, body measurements & activity", connected: true, lastSync: "demo data" },
+  { id: "google-fit", name: "Google Fit", description: "Sync activity, heart points & workouts", connected: false },
+  { id: "fitbit", name: "Fitbit", description: "Import steps, sleep stages & heart rate", connected: false },
+  { id: "garmin", name: "Garmin Connect", description: "Import GPS workouts, VO2 max & body battery", connected: false },
+  { id: "whoop", name: "WHOOP", description: "Sync recovery score, strain & sleep performance", connected: false },
+  { id: "oura", name: "Oura Ring", description: "Import readiness, sleep quality & activity", connected: false },
+  { id: "samsung", name: "Samsung Health", description: "Sync steps, workouts & sleep from Galaxy Watch", connected: false },
 ];
 
 function toDraft(profile: ProfileRow): Draft {
@@ -232,15 +233,15 @@ export default function ProfileView({ email, profile, onUpdateProfile, habitData
 
             <div className="w-full mt-5 pt-5 border-t border-border grid grid-cols-3 gap-2 text-center">
               <div>
-                <p className="text-xl font-extrabold text-foreground">{profile.height_cm ?? "—"}<span className="text-xs font-normal text-muted-foreground">cm</span></p>
+                <p className="metric text-xl font-extrabold text-foreground">{profile.height_cm ?? "—"}<span className="text-xs font-normal text-muted-foreground">cm</span></p>
                 <p className="text-xs text-muted-foreground mt-0.5">Height</p>
               </div>
               <div>
-                <p className="text-xl font-extrabold text-foreground">{profile.weight_kg ?? "—"}<span className="text-xs font-normal text-muted-foreground">kg</span></p>
+                <p className="metric text-xl font-extrabold text-foreground">{profile.weight_kg ?? "—"}<span className="text-xs font-normal text-muted-foreground">kg</span></p>
                 <p className="text-xs text-muted-foreground mt-0.5">Weight</p>
               </div>
               <div>
-                <p className="text-xl font-extrabold text-foreground">{bmi ?? "—"}</p>
+                <p className="metric text-xl font-extrabold text-foreground">{bmi ?? "—"}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{bmiLabel ?? "BMI"}</p>
               </div>
             </div>
@@ -292,24 +293,27 @@ export default function ProfileView({ email, profile, onUpdateProfile, habitData
                   </select>
                 </Field>
                 <div className="flex gap-2 pt-2">
-                  <button onClick={saveGoals} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">Save</button>
-                  <button onClick={cancelGoals} className="flex-1 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-80 transition-all">Cancel</button>
+                  <button onClick={saveGoals} className="flex-1 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">Save</button>
+                  <button onClick={cancelGoals} className="flex-1 py-2.5 rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-80 transition-all">Cancel</button>
                 </div>
               </div>
             ) : (
               <div className="space-y-3">
                 {[
-                  { label: "Calories", value: `${Math.round(profile.calorie_goal).toLocaleString()} kcal`, icon: "🍽️" },
-                  { label: "Water", value: `${profile.water_goal} glasses`, icon: "💧" },
-                  { label: "Sleep", value: `${profile.sleep_goal} hours`, icon: "🌙" },
-                  { label: "Activity", value: profile.activity_level ?? "Not set", icon: "🏃" },
-                ].map(({ label, value, icon }) => (
+                  { label: "Calories", value: `${Math.round(profile.calorie_goal).toLocaleString()} kcal` },
+                  { label: "Water", value: `${profile.water_goal} glasses` },
+                  { label: "Sleep", value: `${profile.sleep_goal} hours` },
+                  { label: "Activity", value: profile.activity_level ?? "Not set" },
+                ].map(({ label, value }) => {
+                  const Icon: LucideIcon = HABIT_ICONS[label];
+                  return (
                   <div key={label} className="flex items-center gap-3">
-                    <span className="text-base">{icon}</span>
+                    <Icon size={16} strokeWidth={2} className="text-muted-foreground flex-shrink-0" />
                     <span className="text-sm text-muted-foreground flex-1">{label}</span>
-                    <span className="text-sm font-bold text-foreground">{value}</span>
+                    <span className="metric text-sm font-bold text-foreground">{value}</span>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -363,8 +367,8 @@ export default function ProfileView({ email, profile, onUpdateProfile, habitData
                   </p>
                 )}
                 <div className="flex gap-3 mt-5 pt-5 border-t border-border">
-                  <button onClick={saveInfo} className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">Save changes</button>
-                  <button onClick={cancelInfo} className="px-6 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-80 transition-all">Cancel</button>
+                  <button onClick={saveInfo} className="px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">Save changes</button>
+                  <button onClick={cancelInfo} className="px-6 py-2.5 rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-80 transition-all">Cancel</button>
                 </div>
               </>
             ) : (
@@ -399,14 +403,16 @@ export default function ProfileView({ email, profile, onUpdateProfile, habitData
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {connectors.map((c) => (
+              {connectors.map((c) => {
+                const Icon = SOURCE_ICONS[c.name] ?? Watch;
+                return (
                 <div
                   key={c.id}
                   className="rounded-xl border p-4 flex items-center gap-4 transition-all"
                   style={c.connected ? { borderColor: "var(--primary)", background: "var(--muted)" } : { borderColor: "var(--border)", background: "var(--card)" }}
                 >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: c.connected ? "rgba(107,92,246,0.12)" : "var(--secondary)" }}>
-                    {c.icon}
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: c.connected ? "rgba(107,92,246,0.12)" : "var(--secondary)" }}>
+                    <Icon size={18} strokeWidth={2} style={{ color: c.connected ? "var(--primary)" : "var(--muted-foreground)" }} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -430,7 +436,8 @@ export default function ProfileView({ email, profile, onUpdateProfile, habitData
                     {syncing === c.id ? "…" : c.connected ? "Disconnect" : "Connect"}
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

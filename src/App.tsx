@@ -126,7 +126,7 @@ export default function App() {
 
             <button
               onClick={() => signOut()}
-              className="ml-1 px-2 sm:px-3 py-2 rounded-xl text-sm font-semibold text-muted-foreground flex-shrink-0 whitespace-nowrap"
+              className="ml-1 px-2 sm:px-3 py-2 rounded-full text-sm font-semibold text-muted-foreground flex-shrink-0 whitespace-nowrap"
               title="Sign out"
             >
               Sign out

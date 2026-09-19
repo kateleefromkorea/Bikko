@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { X, Sunrise, Sun, Sunset, Apple, Moon, Target, Sparkles } from "lucide-react";
+import type { LucideIcon } from "../lib/icons";
 import type { HabitData, BiometricData, HabitEntry, CustomHabit, MealKey, TimeOfDay } from "../types";
 import type { useMedications } from "../hooks/useMedications";
 import { useFoodLog } from "../hooks/useFoodLog";
@@ -53,7 +55,7 @@ function setDateValue(entries: HabitEntry[], date: string, value: number, note?:
 const inputCls =
   "flex-1 rounded-xl border border-border px-4 py-2.5 text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring";
 const btnPrimary =
-  "px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all";
+  "px-4 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all";
 const cardBase = "rounded-2xl p-6 border border-border bg-card h-full flex flex-col";
 const ICONS = ["⭐", "📚", "🧘", "🎯", "💪", "🎨", "🌿", "🐾", "🎵", "✍️", "🧠", "🛁"];
 
@@ -62,7 +64,9 @@ const ICONS = ["⭐", "📚", "🧘", "🎯", "💪", "🎨", "🌿", "🐾", "�
 function CommentBubble({ text }: { text: string }) {
   return (
     <div className="rounded-xl bg-muted border border-border px-3 py-2 mb-4">
-      <p className="text-xs text-secondary-foreground">✨ {text}</p>
+      <p className="text-xs text-secondary-foreground flex items-center gap-1.5">
+        <Sparkles size={13} strokeWidth={2} className="flex-shrink-0 text-primary" />{text}
+      </p>
     </div>
   );
 }
@@ -81,11 +85,11 @@ function ProgressBar({ value, max, color = "var(--primary)" }: { value: number; 
 /* ─── Calorie Tracker ─── */
 interface MealCalories { breakfast: number; lunch: number; dinner: number; snacks: number; }
 
-const MEALS: { key: MealKey; label: string; icon: string }[] = [
-  { key: "breakfast", label: "Breakfast", icon: "🌅" },
-  { key: "lunch",     label: "Lunch",     icon: "☀️" },
-  { key: "dinner",    label: "Dinner",    icon: "🌆" },
-  { key: "snacks",    label: "Snacks",    icon: "🍎" },
+const MEALS: { key: MealKey; label: string; icon: LucideIcon }[] = [
+  { key: "breakfast", label: "Breakfast", icon: Sunrise },
+  { key: "lunch",     label: "Lunch",     icon: Sun },
+  { key: "dinner",    label: "Dinner",    icon: Sunset },
+  { key: "snacks",    label: "Snacks",    icon: Apple },
 ];
 
 function FoodCard({ data, onChange, activeDate, userId }: Props) {
@@ -120,7 +124,7 @@ function FoodCard({ data, onChange, activeDate, userId }: Props) {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-4xl font-extrabold text-foreground">{total.toLocaleString()}</p>
+          <p className="metric-display text-4xl font-extrabold text-foreground">{total.toLocaleString()}</p>
           <p className="text-xs text-muted-foreground">{overTarget ? `${(total - target).toLocaleString()} over` : `${(target - total).toLocaleString()} remaining`}</p>
         </div>
       </div>
@@ -137,7 +141,7 @@ function FoodCard({ data, onChange, activeDate, userId }: Props) {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
-        {MEALS.map(({ key, label, icon }) => {
+        {MEALS.map(({ key, label, icon: Icon }) => {
           const val = meals[key] ?? 0;
           const mealPct = Math.min((val / (target / 4)) * 100, 100);
           const itemCount = foodLog.items.filter((i) => i.meal === key).length;
@@ -145,17 +149,17 @@ function FoodCard({ data, onChange, activeDate, userId }: Props) {
             <div key={key} className="rounded-xl border border-border bg-muted p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">{icon}</span>
+                  <Icon size={15} strokeWidth={2} className="text-muted-foreground flex-shrink-0" />
                   <span className="text-sm font-bold text-secondary-foreground">{label}</span>
                 </div>
-                <span className="text-lg font-extrabold text-foreground">{Math.round(val)}</span>
+                <span className="metric text-lg font-extrabold text-foreground">{Math.round(val)}</span>
               </div>
               <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${mealPct}%`, background: "var(--amber)" }} />
               </div>
               <button
                 onClick={() => setOpenMeal(key)}
-                className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all"
+                className="px-3 py-2 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all"
               >
                 {itemCount > 0 ? `Log food · ${itemCount} item${itemCount === 1 ? "" : "s"}` : "Log food"}
               </button>
@@ -285,7 +289,7 @@ function WaterCard({ data, onChange, activeDate, biometrics }: Props) {
           <h3 className="font-extrabold text-foreground text-xl">Water Intake</h3>
           <p className="text-xs text-muted-foreground">Target: {nudgeTarget} glasses/day</p>
         </div>
-        <span className="ml-auto text-3xl font-extrabold text-foreground">{glasses}/{nudgeTarget}</span>
+        <span className="metric ml-auto text-3xl font-extrabold text-foreground">{glasses}/{nudgeTarget}</span>
       </div>
 
       {nudgeMsg && <CommentBubble text={nudgeMsg} />}
@@ -303,10 +307,10 @@ function WaterCard({ data, onChange, activeDate, biometrics }: Props) {
 }
 
 /* ─── Medications & Supplements ─── */
-const TIME_SLOTS: { key: TimeOfDay; label: string; icon: string }[] = [
-  { key: "breakfast", label: "Breakfast", icon: "🌅" },
-  { key: "midday",    label: "Midday",    icon: "☀️" },
-  { key: "night",     label: "Night",     icon: "🌙" },
+const TIME_SLOTS: { key: TimeOfDay; label: string; icon: LucideIcon }[] = [
+  { key: "breakfast", label: "Breakfast", icon: Sunrise },
+  { key: "midday",    label: "Midday",    icon: Sun },
+  { key: "night",     label: "Night",     icon: Moon },
 ];
 
 function MedicationCard({ data, onChange, activeDate, medications }: Props) {
@@ -366,13 +370,13 @@ function MedicationCard({ data, onChange, activeDate, medications }: Props) {
         {medList.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">No medications or supplements added yet.</p>
         )}
-        {TIME_SLOTS.map(({ key, label, icon }) => {
+        {TIME_SLOTS.map(({ key, label, icon: Icon }) => {
           const slotMeds = medList.filter((m) => m.time_of_day === key);
           if (slotMeds.length === 0) return null;
           return (
             <div key={key}>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <span>{icon}</span> {label}
+                <Icon size={13} strokeWidth={2.25} /> {label}
               </p>
               <ul className="space-y-2">
                 {slotMeds.map((med) => {
@@ -395,7 +399,7 @@ function MedicationCard({ data, onChange, activeDate, medications }: Props) {
                       >
                         {TIME_SLOTS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
                       </select>
-                      <button onClick={() => removeMed(med.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground text-xs transition-all">✕</button>
+                      <button onClick={() => removeMed(med.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all" aria-label="Remove"><X size={14} strokeWidth={2.25} /></button>
                     </li>
                   );
                 })}
@@ -426,13 +430,13 @@ function MedicationCard({ data, onChange, activeDate, medications }: Props) {
                     ? { background: "var(--primary)", color: "var(--primary-foreground)" }
                     : { background: "var(--muted)", color: "var(--muted-foreground)" }}
                 >
-                  {s.icon} {s.label}
+                  <s.icon size={12} strokeWidth={2.25} className="inline-block mr-1 -mt-0.5" />{s.label}
                 </button>
               ))}
             </div>
             <div className="flex gap-2">
-              <button onClick={addMed} className="px-3 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">Add</button>
-              <button onClick={() => setAdding(false)} className="px-3 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm transition-all">✕</button>
+              <button onClick={addMed} className="px-3 py-2 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">Add</button>
+              <button onClick={() => setAdding(false)} className="px-3 py-2 rounded-full bg-secondary text-secondary-foreground transition-all" aria-label="Cancel"><X size={14} strokeWidth={2.25} /></button>
             </div>
           </div>
         ) : (
@@ -527,7 +531,7 @@ function SleepCard({ data, onChange, activeDate, biometrics }: Props) {
         </div>
         {totalH !== null && (
           <div className="ml-auto text-right">
-            <p className="text-3xl font-extrabold text-foreground">{totalH}h</p>
+            <p className="metric-display text-3xl font-extrabold text-foreground">{totalH}h</p>
             <p className="text-xs text-muted-foreground">total sleep</p>
           </div>
         )}
@@ -774,14 +778,14 @@ function CustomHabitsCard({ data, onChange, activeDate }: Props) {
           </div>
           <div className="flex gap-3">
             <button onClick={saveHabit} className={btnPrimary}>Create Habit</button>
-            <button onClick={() => setAdding(false)} className="px-5 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold">Cancel</button>
+            <button onClick={() => setAdding(false)} className="px-5 py-2.5 rounded-full bg-secondary text-secondary-foreground text-sm font-semibold">Cancel</button>
           </div>
         </div>
       )}
 
       {data.custom.length === 0 && !adding && (
         <div className="rounded-2xl border-2 border-dashed border-border p-10 text-center">
-          <p className="text-4xl mb-3">🎯</p>
+          <Target size={32} strokeWidth={1.5} className="mx-auto mb-3 text-muted-foreground" />
           <p className="text-muted-foreground text-sm">No custom habits yet.</p>
           <p className="text-muted-foreground text-xs mt-1 opacity-70">Click "New Habit" to add your own.</p>
         </div>
@@ -801,7 +805,7 @@ function CustomHabitsCard({ data, onChange, activeDate }: Props) {
                 <span className="text-xl font-extrabold text-foreground">
                   {todayVal} <span className="text-sm font-normal text-muted-foreground">{habit.unit}</span>
                 </span>
-                <button onClick={() => deleteHabit(habit.id)} className="text-muted-foreground hover:text-foreground text-sm ml-1">✕</button>
+                <button onClick={() => deleteHabit(habit.id)} className="text-muted-foreground hover:text-foreground ml-1" aria-label="Delete habit"><X size={14} strokeWidth={2.25} /></button>
               </div>
               <ProgressBar value={todayVal} max={habit.target} color="var(--peach)" />
               <div className="flex gap-2 mt-4">
@@ -838,7 +842,7 @@ function DateNavigator({ activeDate, onChange }: { activeDate: string; onChange:
     <div className="flex items-center gap-3">
       <button
         onClick={() => shift(-1)}
-        className="w-9 h-9 rounded-xl bg-secondary hover:bg-border flex items-center justify-center text-secondary-foreground transition-all font-bold"
+        className="w-9 h-9 rounded-full bg-secondary hover:bg-border flex items-center justify-center text-secondary-foreground transition-all font-bold"
       >
         ‹
       </button>
@@ -858,7 +862,7 @@ function DateNavigator({ activeDate, onChange }: { activeDate: string; onChange:
       <button
         onClick={() => shift(1)}
         disabled={isToday}
-        className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center text-secondary-foreground transition-all font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-border"
+        className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground transition-all font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-border"
       >
         ›
       </button>

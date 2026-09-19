@@ -1,5 +1,6 @@
 import type { Baseline } from "../../lib/metabolics";
 import { goalByKey } from "../../lib/metabolics";
+import { TriangleAlert } from "lucide-react";
 
 interface Props {
   baseline: Baseline;
@@ -15,7 +16,6 @@ export default function StepResult({ baseline, goalKey, name, onDone, saving }: 
 
   return (
     <div className="text-center">
-      <div className="text-5xl mb-3">🎉</div>
       <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground leading-tight">
         {name ? `${name.split(/\s+/)[0]}, your plan is ready.` : "Your plan is ready."}
       </h2>
@@ -28,7 +28,7 @@ export default function StepResult({ baseline, goalKey, name, onDone, saving }: 
         <p className="text-xs font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.75)" }}>
           Your daily target
         </p>
-        <p className="text-5xl font-extrabold mt-1" style={{ color: "#fff" }}>
+        <p className="metric-display text-5xl font-extrabold mt-1" style={{ color: "#fff" }}>
           {calorieTarget.toLocaleString()}
         </p>
         <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>kcal per day</p>
@@ -44,22 +44,23 @@ export default function StepResult({ baseline, goalKey, name, onDone, saving }: 
 
       <div className="mt-3 grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-2xl font-extrabold text-foreground">{bmr.toLocaleString()}</p>
+          <p className="metric text-2xl font-extrabold text-foreground">{bmr.toLocaleString()}</p>
           <p className="text-xs font-bold text-muted-foreground mt-0.5">BMR</p>
           <p className="text-xs text-muted-foreground mt-1">What you burn at complete rest</p>
         </div>
         <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-2xl font-extrabold text-foreground">{tdee.toLocaleString()}</p>
+          <p className="metric text-2xl font-extrabold text-foreground">{tdee.toLocaleString()}</p>
           <p className="text-xs font-bold text-muted-foreground mt-0.5">TDEE</p>
           <p className="text-xs text-muted-foreground mt-1">With your activity level on top</p>
         </div>
       </div>
 
       {clampedToFloor && (
-        <p className="text-xs rounded-xl p-3 mt-3 text-left" style={{ background: "rgba(245,166,35,0.1)", color: "#8a5a00" }}>
-          ⚠️ Your chosen pace worked out below a safe daily minimum, so we raised your target to{" "}
+        <p className="text-xs rounded-lg p-3 mt-3 text-left flex gap-2" style={{ background: "rgba(245,166,35,0.1)", color: "#8a5a00" }}>
+          <TriangleAlert size={14} strokeWidth={2.25} className="flex-shrink-0 mt-0.5" />
+          <span>Your chosen pace worked out below a safe daily minimum, so we raised your target to{" "}
           {calorieTarget.toLocaleString()} kcal. Pick a gentler rate in your profile if you would like the
-          maths to match your original pace.
+          maths to match your original pace.</span>
         </p>
       )}
 
@@ -72,7 +73,7 @@ export default function StepResult({ baseline, goalKey, name, onDone, saving }: 
         type="button"
         onClick={onDone}
         disabled={saving}
-        className="w-full mt-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all disabled:opacity-60"
+        className="w-full mt-5 py-3 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all disabled:opacity-60"
       >
         {saving ? "Saving…" : "Go to my dashboard →"}
       </button>

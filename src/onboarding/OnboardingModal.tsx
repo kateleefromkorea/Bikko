@@ -163,7 +163,7 @@ export default function OnboardingModal({ profile, onComplete }: Props) {
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="mt-4 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold"
+                  className="mt-4 px-4 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold"
                 >
                   Back to my details
                 </button>
@@ -178,7 +178,7 @@ export default function OnboardingModal({ profile, onComplete }: Props) {
               <button
                 type="button"
                 onClick={goBack}
-                className="px-4 py-2.5 rounded-xl text-sm font-bold text-muted-foreground hover:opacity-70 transition-all"
+                className="px-4 py-2.5 rounded-full text-sm font-bold text-muted-foreground hover:opacity-70 transition-all"
               >
                 ← Back
               </button>
@@ -188,7 +188,7 @@ export default function OnboardingModal({ profile, onComplete }: Props) {
               <button
                 type="button"
                 onClick={() => setStep((n) => n + 1)}
-                className="ml-auto px-4 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground hover:opacity-70 transition-all"
+                className="ml-auto px-4 py-2.5 rounded-full text-sm font-semibold text-muted-foreground hover:opacity-70 transition-all"
               >
                 Skip
               </button>
@@ -197,7 +197,7 @@ export default function OnboardingModal({ profile, onComplete }: Props) {
             <button
               type="button"
               onClick={goNext}
-              className={`${SKIPPABLE.has(step) ? "" : "ml-auto"} px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all`}
+              className={`${SKIPPABLE.has(step) ? "" : "ml-auto"} px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all`}
             >
               {step === 1 ? "Get started" : step === TOTAL_STEPS ? "See my plan" : "Continue"}
             </button>

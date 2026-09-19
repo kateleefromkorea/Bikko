@@ -2,13 +2,15 @@ import { useState } from "react";
 import type { useOnboardingState } from "../useOnboardingState";
 import { ACTIVITY_LEVELS } from "../../lib/metabolics";
 import { ErrorText, Field, SelectCard, StepHeading } from "../ui";
+import { ACTIVITY_ICONS, SOURCE_ICONS } from "../../lib/icons";
+import { Check, Watch } from "lucide-react";
 
 type Api = ReturnType<typeof useOnboardingState>;
 
 const SOURCES = [
-  { key: "Apple Health", icon: "🍎", scopes: ["Steps & activity", "Heart rate", "Sleep analysis", "Body measurements"] },
-  { key: "Google Fit", icon: "🏃", scopes: ["Steps & activity", "Heart points", "Workouts"] },
-  { key: "Fitbit", icon: "📊", scopes: ["Steps & activity", "Sleep stages", "Heart rate"] },
+  { key: "Apple Health", scopes: ["Steps & activity", "Heart rate", "Sleep analysis", "Body measurements"] },
+  { key: "Google Fit", scopes: ["Steps & activity", "Heart points", "Workouts"] },
+  { key: "Fitbit", scopes: ["Steps & activity", "Sleep stages", "Heart rate"] },
 ];
 
 export default function StepLifestyle({ api, showError }: { api: Api; showError: boolean }) {
@@ -42,7 +44,7 @@ export default function StepLifestyle({ api, showError }: { api: Api; showError:
         {ACTIVITY_LEVELS.map((a) => (
           <SelectCard
             key={a.label}
-            icon={a.icon}
+            icon={ACTIVITY_ICONS[a.label]}
             label={a.label}
             description={a.description}
             selected={s.activityLevel === a.label}
@@ -63,8 +65,11 @@ export default function StepLifestyle({ api, showError }: { api: Api; showError:
               className="rounded-2xl border-2 p-4 flex items-center gap-3.5"
               style={{ borderColor: "var(--primary)", background: "var(--muted)" }}
             >
-              <span className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: "rgba(107,92,246,0.12)" }}>
-                {SOURCES.find((x) => x.key === s.wearable)?.icon ?? "⌚"}
+              <span className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "rgba(107,92,246,0.12)" }}>
+                {(() => {
+                  const Icon = SOURCE_ICONS[s.wearable] ?? Watch;
+                  return <Icon size={18} strokeWidth={2} style={{ color: "var(--primary)" }} />;
+                })()}
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-foreground">{s.wearable} connected</p>
@@ -87,7 +92,10 @@ export default function StepLifestyle({ api, showError }: { api: Api; showError:
                   onClick={() => setAsking(x.key)}
                   className="rounded-xl border border-border bg-card px-3 py-3 flex items-center gap-2 transition-all hover:opacity-80"
                 >
-                  <span className="text-lg">{x.icon}</span>
+                  {(() => {
+                    const Icon = SOURCE_ICONS[x.key] ?? Watch;
+                    return <Icon size={16} strokeWidth={2} className="text-muted-foreground" />;
+                  })()}
                   <span className="text-xs font-bold text-foreground">{x.key}</span>
                 </button>
               ))}
@@ -106,13 +114,18 @@ export default function StepLifestyle({ api, showError }: { api: Api; showError:
             aria-modal="true"
             aria-label={`${sheet.key} permission`}
           >
-            <div className="text-4xl mb-3">{sheet.icon}</div>
+            <div className="flex justify-center mb-3">
+              {(() => {
+                const Icon = SOURCE_ICONS[sheet.key] ?? Watch;
+                return <Icon size={32} strokeWidth={1.5} style={{ color: "var(--primary)" }} />;
+              })()}
+            </div>
             <h4 className="text-lg font-extrabold text-foreground">Allow Fikko to read {sheet.key}?</h4>
             <p className="text-xs text-muted-foreground mt-1.5">Fikko would like access to:</p>
             <ul className="mt-3 mb-5 flex flex-col gap-1.5 text-left">
               {sheet.scopes.map((sc) => (
                 <li key={sc} className="text-sm text-foreground flex items-center gap-2">
-                  <span className="text-primary">✓</span>{sc}
+                  <Check size={15} strokeWidth={2.5} className="text-primary flex-shrink-0" />{sc}
                 </li>
               ))}
             </ul>
@@ -124,7 +137,7 @@ export default function StepLifestyle({ api, showError }: { api: Api; showError:
                 type="button"
                 onClick={allow}
                 disabled={connecting}
-                className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all disabled:opacity-60"
+                className="w-full py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all disabled:opacity-60"
               >
                 {connecting ? "Connecting…" : "Allow"}
               </button>
@@ -132,7 +145,7 @@ export default function StepLifestyle({ api, showError }: { api: Api; showError:
                 type="button"
                 onClick={() => setAsking(null)}
                 disabled={connecting}
-                className="w-full py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-80 transition-all disabled:opacity-60"
+                className="w-full py-2.5 rounded-full bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-80 transition-all disabled:opacity-60"
               >
                 Not now
               </button>

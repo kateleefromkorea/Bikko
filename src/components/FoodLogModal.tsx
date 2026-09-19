@@ -17,7 +17,7 @@ interface Props {
 const inputCls =
   "flex-1 rounded-xl border border-border px-3 py-2 text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring";
 const btnPrimary =
-  "px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50";
+  "px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50";
 
 // Everything is stored in grams internally; these let people enter an amount
 // in whatever unit is natural and have it converted. Volume conversions assume
@@ -174,7 +174,7 @@ export default function FoodLogModal({
                   className="w-16 rounded-lg border border-border px-2 py-1.5 text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 <span className="text-xs text-muted-foreground">g</span>
-                <button onClick={() => addResult(result)} className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">
+                <button onClick={() => addResult(result)} className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all">
                   Add
                 </button>
               </div>
@@ -232,7 +232,7 @@ export default function FoodLogModal({
               </div>
               <div className="flex gap-2">
                 <button onClick={addManual} className={btnPrimary}>Add manually</button>
-                <button onClick={() => setManualMode(false)} className="px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold">Cancel</button>
+                <button onClick={() => setManualMode(false)} className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm font-semibold">Cancel</button>
               </div>
               <p className="text-xs text-muted-foreground">
                 Saved to your foods so you can search for it next time.

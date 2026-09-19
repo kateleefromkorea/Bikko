@@ -1,12 +1,14 @@
 import type { useOnboardingState } from "../useOnboardingState";
 import { Field, SelectCard, StepHeading } from "../ui";
+import { TRACKING_ICONS } from "../../lib/icons";
+import { Bell } from "lucide-react";
 
 type Api = ReturnType<typeof useOnboardingState>;
 
 const TRACKING_STYLES = [
-  { key: "Detailed macros", icon: "🧮", description: "Protein, carbs and fats broken out for every meal" },
-  { key: "Simple calories", icon: "🔢", description: "Just the calorie total — quick to log, easy to keep up" },
-  { key: "Visual meals", icon: "📷", description: "Log meals by photo and portion, numbers stay in the background" },
+  { key: "Detailed macros", description: "Protein, carbs and fats broken out for every meal" },
+  { key: "Simple calories", description: "Just the calorie total — quick to log, easy to keep up" },
+  { key: "Visual meals", description: "Log meals by photo and portion, numbers stay in the background" },
 ];
 
 export default function StepPreferences({ api }: { api: Api }) {
@@ -25,7 +27,7 @@ export default function StepPreferences({ api }: { api: Api }) {
             {TRACKING_STYLES.map((t) => (
               <SelectCard
                 key={t.key}
-                icon={t.icon}
+                icon={TRACKING_ICONS[t.key]}
                 label={t.key}
                 description={t.description}
                 selected={s.trackingStyle === t.key}
@@ -45,8 +47,8 @@ export default function StepPreferences({ api }: { api: Api }) {
               ? { borderColor: "var(--primary)", background: "var(--muted)" }
               : { borderColor: "var(--border)", background: "var(--card)" }}
           >
-            <span className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: s.remindersEnabled ? "rgba(107,92,246,0.12)" : "var(--secondary)" }}>
-              🔔
+            <span className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: s.remindersEnabled ? "rgba(107,92,246,0.12)" : "var(--secondary)" }}>
+              <Bell size={18} strokeWidth={2} style={{ color: s.remindersEnabled ? "var(--primary)" : "var(--muted-foreground)" }} />
             </span>
             <span className="flex-1 min-w-0">
               <span className="block text-sm font-bold text-foreground">Daily nudges</span>

@@ -51,15 +51,14 @@ export interface ActivityLevel {
   label: string;
   multiplier: number;
   description: string;
-  icon: string;
 }
 
 export const ACTIVITY_LEVELS: ActivityLevel[] = [
-  { label: "Sedentary", multiplier: 1.2, description: "Desk job, little deliberate movement", icon: "🪑" },
-  { label: "Lightly active", multiplier: 1.375, description: "Some walking or light exercise 1–3 days a week", icon: "🚶" },
-  { label: "Moderately active", multiplier: 1.55, description: "Regular workouts 3–5 days a week", icon: "🏃" },
-  { label: "Very active", multiplier: 1.725, description: "Hard training 6–7 days a week", icon: "🏋️" },
-  { label: "Extra active", multiplier: 1.9, description: "Physical job plus intense daily training", icon: "🔥" },
+  { label: "Sedentary", multiplier: 1.2, description: "Desk job, little deliberate movement" },
+  { label: "Lightly active", multiplier: 1.375, description: "Some walking or light exercise 1–3 days a week" },
+  { label: "Moderately active", multiplier: 1.55, description: "Regular workouts 3–5 days a week" },
+  { label: "Very active", multiplier: 1.725, description: "Hard training 6–7 days a week" },
+  { label: "Extra active", multiplier: 1.9, description: "Physical job plus intense daily training" },
 ];
 
 export function activityMultiplier(label: string | null): number {
@@ -72,18 +71,17 @@ export interface Goal {
   key: string;
   label: string;
   description: string;
-  icon: string;
   /** Goals that change body weight get the target-weight + rate step. */
   weightManaging: "loss" | "gain" | null;
 }
 
 export const GOALS: Goal[] = [
-  { key: "weight_loss", label: "Weight loss", description: "Lose fat at a steady, sustainable pace", icon: "📉", weightManaging: "loss" },
-  { key: "muscle_building", label: "Muscle building", description: "Build strength and add lean mass", icon: "💪", weightManaging: "gain" },
-  { key: "maintenance", label: "Maintenance", description: "Hold your current weight and stay consistent", icon: "⚖️", weightManaging: null },
-  { key: "nutrition", label: "Better nutrition", description: "Eat better and support your gut health", icon: "🥗", weightManaging: null },
-  { key: "chronic", label: "Condition management", description: "Track habits around an ongoing condition", icon: "🩺", weightManaging: null },
-  { key: "longevity", label: "General longevity", description: "Feel good now and age well later", icon: "🌱", weightManaging: null },
+  { key: "weight_loss", label: "Weight loss", description: "Lose fat at a steady, sustainable pace", weightManaging: "loss" },
+  { key: "muscle_building", label: "Muscle building", description: "Build strength and add lean mass", weightManaging: "gain" },
+  { key: "maintenance", label: "Maintenance", description: "Hold your current weight and stay consistent", weightManaging: null },
+  { key: "nutrition", label: "Better nutrition", description: "Eat better and support your gut health", weightManaging: null },
+  { key: "chronic", label: "Condition management", description: "Track habits around an ongoing condition", weightManaging: null },
+  { key: "longevity", label: "General longevity", description: "Feel good now and age well later", weightManaging: null },
 ];
 
 export const goalByKey = (key: string | null) => GOALS.find((g) => g.key === key) ?? null;

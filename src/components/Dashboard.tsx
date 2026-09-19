@@ -11,6 +11,7 @@ import type { HabitData, BiometricData, HabitEntry, BiometricEntry, CustomHabit 
 import PageHeader from "./PageHeader";
 import type { ProfileRow } from "../hooks/useProfile";
 import { goalByKey } from "../lib/metabolics";
+import { GOAL_ICONS, INSIGHT_ICONS, type LucideIcon } from "../lib/icons";
 
 interface Props {
   data: HabitData;
@@ -107,10 +108,10 @@ const ax = {
 
 function PeriodToggle({ period, onChange }: { period: Period; onChange: (p: Period) => void }) {
   return (
-    <div className="flex gap-1 p-1 rounded-xl bg-secondary">
+    <div className="flex gap-1 p-1 rounded-full bg-secondary">
       {(["week", "month", "year"] as Period[]).map((p) => (
         <button key={p} onClick={() => onChange(p)}
-          className="px-4 py-1.5 rounded-lg text-sm font-bold capitalize transition-all"
+          className="px-4 py-1.5 rounded-full text-sm font-bold capitalize transition-all"
           style={period === p ? { background: "var(--primary)", color: "var(--primary-foreground)" } : { color: "var(--muted-foreground)" }}>
           {p}
         </button>
@@ -154,7 +155,7 @@ function VitalCard({
     <div className="rounded-2xl p-5 bg-card border border-border flex flex-col gap-1">
       <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">{label}</p>
       <div className="flex items-baseline gap-1.5 mt-1">
-        <p className="text-3xl font-extrabold text-foreground">{value}</p>
+        <p className="metric-display text-3xl font-extrabold text-foreground">{value}</p>
         <p className="text-sm text-muted-foreground">{unit}</p>
       </div>
       <div className="flex items-center gap-1.5 mt-0.5">
@@ -183,10 +184,10 @@ function MiniSparkline({ data, color = "var(--primary)" }: { data: { label: stri
   );
 }
 
-function InsightCard({ text, icon }: { text: string; icon: string }) {
+function InsightCard({ text, icon: Icon }: { text: string; icon: LucideIcon }) {
   return (
     <div className="rounded-xl px-4 py-3 flex items-start gap-3 bg-muted border border-border">
-      <span className="text-base mt-0.5">{icon}</span>
+      <Icon size={16} strokeWidth={2} className="mt-0.5 flex-shrink-0 text-primary" />
       <p className="text-sm text-secondary-foreground leading-relaxed">{text}</p>
     </div>
   );
@@ -225,7 +226,10 @@ function BaselinePlan({ profile }: { profile: ProfileRow }) {
             {profile.target_weight_kg ? ` · target ${profile.target_weight_kg} kg` : ""}
           </p>
         </div>
-        {goal && <span className="text-2xl">{goal.icon}</span>}
+        {goal && (() => {
+          const Icon = GOAL_ICONS[goal.key];
+          return <Icon size={22} strokeWidth={1.75} className="text-muted-foreground" />;
+        })()}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -244,7 +248,7 @@ function BaselinePlan({ profile }: { profile: ProfileRow }) {
               {t.label}
             </p>
             <p
-              className="text-3xl font-extrabold mt-1"
+              className="metric-display text-3xl font-extrabold mt-1"
               style={{ color: t.accent ? "#fff" : "var(--foreground)" }}
             >
               {t.value}
@@ -348,16 +352,16 @@ export default function Dashboard({ data, biometrics, profile }: Props) {
   ];
 
   // Insights
-  const insights: { text: string; icon: string }[] = [];
-  if (hrvNow < 35) insights.push({ text: `HRV is ${hrvNow}ms — lower than optimal. Prioritise rest and reduce stress today.`, icon: "💓" });
-  if (spo2Now < 96) insights.push({ text: `SpO₂ is ${spo2Now}% — slightly below the ideal 97–99% range. Consider checking your device fit.`, icon: "🩸" });
-  if (recNow < 50) insights.push({ text: `Recovery score is ${recNow}/100. Your body may need an easier day.`, icon: "🔋" });
-  if (recNow >= 80) insights.push({ text: `Recovery score is ${recNow}/100 — excellent. A great day to push a hard workout.`, icon: "⚡" });
-  if (stressNow > 65) insights.push({ text: `Stress levels are elevated at ${stressNow}/100. A short walk or breathing exercise can help.`, icon: "🧘" });
-  if (todaySleep.deep < 1) insights.push({ text: `Deep sleep was only ${todaySleep.deep}h last night. Avoid screens 1h before bed to improve slow-wave sleep.`, icon: "🌙" });
-  if (latest(bm.steps) >= 10000) insights.push({ text: `You hit ${stepsNow} steps today — above the 10,000 target. Great movement!`, icon: "👟" });
-  if (hrNow > 72) insights.push({ text: `Resting HR is ${hrNow}bpm — slightly elevated. Could reflect stress, caffeine, or incomplete recovery.`, icon: "❤️" });
-  if (insights.length === 0) insights.push({ text: "All vitals look healthy today. Keep up the great work!", icon: "✅" });
+  const insights: { text: string; icon: LucideIcon }[] = [];
+  if (hrvNow < 35) insights.push({ text: `HRV is ${hrvNow}ms — lower than optimal. Prioritise rest and reduce stress today.`, icon: INSIGHT_ICONS.heart });
+  if (spo2Now < 96) insights.push({ text: `SpO₂ is ${spo2Now}% — slightly below the ideal 97–99% range. Consider checking your device fit.`, icon: INSIGHT_ICONS.breathing });
+  if (recNow < 50) insights.push({ text: `Recovery score is ${recNow}/100. Your body may need an easier day.`, icon: INSIGHT_ICONS.recovery });
+  if (recNow >= 80) insights.push({ text: `Recovery score is ${recNow}/100 — excellent. A great day to push a hard workout.`, icon: INSIGHT_ICONS.energy });
+  if (stressNow > 65) insights.push({ text: `Stress levels are elevated at ${stressNow}/100. A short walk or breathing exercise can help.`, icon: INSIGHT_ICONS.calm });
+  if (todaySleep.deep < 1) insights.push({ text: `Deep sleep was only ${todaySleep.deep}h last night. Avoid screens 1h before bed to improve slow-wave sleep.`, icon: INSIGHT_ICONS.sleep });
+  if (latest(bm.steps) >= 10000) insights.push({ text: `You hit ${stepsNow} steps today — above the 10,000 target. Great movement!`, icon: INSIGHT_ICONS.steps });
+  if (hrNow > 72) insights.push({ text: `Resting HR is ${hrNow}bpm — slightly elevated. Could reflect stress, caffeine, or incomplete recovery.`, icon: INSIGHT_ICONS.heart });
+  if (insights.length === 0) insights.push({ text: "All vitals look healthy today. Keep up the great work!", icon: INSIGHT_ICONS.ok });
 
   const periodLabel = period === "week" ? "Last 7 days" : period === "month" ? "Last 30 days" : "Last 12 months";
 
@@ -403,7 +407,7 @@ export default function Dashboard({ data, biometrics, profile }: Props) {
                       strokeDasharray={`${recNow} 100`} strokeLinecap="round" />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg font-extrabold text-foreground">{recNow}</span>
+                    <span className="metric text-lg font-extrabold text-foreground">{recNow}</span>
                   </div>
                 </div>
                 <div>
@@ -420,7 +424,7 @@ export default function Dashboard({ data, biometrics, profile }: Props) {
                 <div className="flex-1 h-3 rounded-full bg-secondary overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-500" style={{ width: `${stressNow}%`, background: stressNow > 65 ? "var(--coral)" : stressNow > 40 ? "var(--amber)" : "var(--teal)" }} />
                 </div>
-                <span className="text-xl font-extrabold text-foreground w-12 text-right">{stressNow}</span>
+                <span className="metric text-xl font-extrabold text-foreground w-12 text-right">{stressNow}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 {stressNow > 65 ? "Elevated — try a breathing exercise" : stressNow > 40 ? "Moderate — manageable" : "Low — you're calm today"}
@@ -638,7 +642,7 @@ export default function Dashboard({ data, biometrics, profile }: Props) {
 
           <ChartCard title="Body Weight" sub="kg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-2xl font-extrabold text-foreground">{weightNow} kg</span>
+              <span className="metric text-2xl font-extrabold text-foreground">{weightNow} kg</span>
               <span className="text-xs text-muted-foreground">Current</span>
             </div>
             <ResponsiveContainer width="100%" height={100}>

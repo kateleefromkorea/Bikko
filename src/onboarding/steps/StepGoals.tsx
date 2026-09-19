@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import type { useOnboardingState } from "../useOnboardingState";
 import { GAIN_RATES, GOALS, LOSS_RATES, goalByKey } from "../../lib/metabolics";
 import { ErrorText, Field, inputCls, SelectCard, StepHeading } from "../ui";
+import { GOAL_ICONS } from "../../lib/icons";
+import { TriangleAlert } from "lucide-react";
 
 type Api = ReturnType<typeof useOnboardingState>;
 
@@ -41,7 +43,7 @@ export default function StepGoals({ api, showError }: { api: Api; showError: boo
         {GOALS.map((g) => (
           <SelectCard
             key={g.key}
-            icon={g.icon}
+            icon={GOAL_ICONS[g.key]}
             label={g.label}
             description={g.description}
             selected={s.goalKey === g.key}
@@ -95,9 +97,10 @@ export default function StepGoals({ api, showError }: { api: Api; showError: boo
           </Field>
 
           {direction === "loss" && s.weeklyRate != null && s.weeklyRate >= 0.75 && (
-            <p className="text-xs rounded-xl p-3" style={{ background: "rgba(245,166,35,0.1)", color: "#8a5a00" }}>
-              ⚠️ That is a fast pace. It is safe for many people short-term, but it is harder to
-              sustain — you can ease off any time from your profile.
+            <p className="text-xs rounded-lg p-3 flex gap-2" style={{ background: "rgba(245,166,35,0.1)", color: "#8a5a00" }}>
+              <TriangleAlert size={14} strokeWidth={2.25} className="flex-shrink-0 mt-0.5" />
+              <span>That is a fast pace. It is safe for many people short-term, but it is harder to
+              sustain — you can ease off any time from your profile.</span>
             </p>
           )}
 

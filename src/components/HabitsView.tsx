@@ -5,11 +5,22 @@ import { useFoodLog } from "../hooks/useFoodLog";
 import FoodLogModal from "./FoodLogModal";
 import PageHeader from "./PageHeader";
 
-function greeting() {
+function timeGreeting() {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
   if (h < 18) return "Good afternoon";
   return "Good evening";
+}
+
+function greeting(name: string) {
+  const firstName = name.trim().split(/\s+/)[0];
+  return firstName ? `${timeGreeting()}, ${firstName}` : timeGreeting();
+}
+
+function progressSubtitle(done: number, total: number) {
+  if (total === 0 || done === 0) return "How are you doing today?";
+  if (done >= total) return "You've completed everything today! 🎉";
+  return `${done} of ${total} habits done today.`;
 }
 
 type Medications = ReturnType<typeof useMedications>;
@@ -21,6 +32,9 @@ interface Props {
   biometrics: BiometricData;
   medications: Medications;
   userId: string | null;
+  profileName: string;
+  done: number;
+  total: number;
 }
 
 const TODAY = new Date().toISOString().split("T")[0];
@@ -858,16 +872,16 @@ function DateNavigator({ activeDate, onChange }: { activeDate: string; onChange:
 }
 
 /* ─── Layout ─── */
-export default function HabitsView({ data, onChange, biometrics, medications, userId }: Omit<Props, "activeDate">) {
+export default function HabitsView({ data, onChange, biometrics, medications, userId, profileName, done, total }: Omit<Props, "activeDate">) {
   const [activeDate, setActiveDate] = useState(TODAY);
-  const cardProps = { data, onChange, activeDate, biometrics, medications, userId };
+  const cardProps = { data, onChange, activeDate, biometrics, medications, userId, profileName, done, total };
 
   return (
     <div className="space-y-6">
       {/* Header + date navigator */}
       <PageHeader
-        title={greeting()}
-        subtitle="How are you doing today?"
+        title={greeting(profileName)}
+        subtitle={progressSubtitle(done, total)}
         action={<DateNavigator activeDate={activeDate} onChange={setActiveDate} />}
       />
 

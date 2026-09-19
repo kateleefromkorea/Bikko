@@ -131,7 +131,16 @@ export default function App() {
 
       <main className="w-full px-4 sm:px-6 py-8">
         {tab === "habits" && (
-          <HabitsView data={data} onChange={setData} biometrics={biometrics} medications={medications} userId={userId} />
+          <HabitsView
+            data={data}
+            onChange={setData}
+            biometrics={biometrics}
+            medications={medications}
+            userId={userId}
+            profileName={profile.name}
+            done={done}
+            total={total}
+          />
         )}
         {tab === "dashboard" && <Dashboard data={data} biometrics={biometrics} />}
         {tab === "coaches" && <CoachView />}

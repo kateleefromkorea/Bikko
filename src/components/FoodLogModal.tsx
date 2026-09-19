@@ -6,9 +6,11 @@ interface Props {
   meal: MealKey;
   mealLabel: string;
   items: FoodLogItem[];
+  savedFoods: FoodResult[];
   onAdd: (food: { name: string; grams: number; caloriesPer100g: number }) => void;
   onUpdateGrams: (itemId: string, grams: number) => void;
   onDelete: (itemId: string) => void;
+  onSaveFood: (name: string, caloriesPer100g: number) => void;
   onClose: () => void;
 }
 
@@ -17,16 +19,39 @@ const inputCls =
 const btnPrimary =
   "px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50";
 
-export default function FoodLogModal({ meal, mealLabel, items, onAdd, onUpdateGrams, onDelete, onClose }: Props) {
+// Everything is stored in grams internally; these let people enter an amount
+// in whatever unit is natural and have it converted. Volume conversions assume
+// water-like density, which is the usual approximation for food logging.
+const UNITS: { key: string; label: string; grams: number }[] = [
+  { key: "g",    label: "g",    grams: 1 },
+  { key: "oz",   label: "oz",   grams: 28.35 },
+  { key: "ml",   label: "ml",   grams: 1 },
+  { key: "cup",  label: "cup",  grams: 240 },
+  { key: "tbsp", label: "tbsp", grams: 15 },
+  { key: "tsp",  label: "tsp",  grams: 5 },
+];
+
+export default function FoodLogModal({
+  meal, mealLabel, items, savedFoods, onAdd, onUpdateGrams, onDelete, onSaveFood, onClose,
+}: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<FoodResult[]>([]);
+  const [searched, setSearched] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gramsByResult, setGramsByResult] = useState<Record<string, string>>({});
   const [manualMode, setManualMode] = useState(false);
-  const [manual, setManual] = useState({ name: "", grams: "100", calories: "" });
+  const [manual, setManual] = useState({ name: "", amount: "100", unit: "g", calories: "" });
 
   const total = items.reduce((sum, i) => sum + i.calories, 0);
+
+  // The user's own saved foods rank above USDA results — they're already known-good.
+  const savedMatches = query.trim()
+    ? savedFoods.filter((f) => f.name.toLowerCase().includes(query.trim().toLowerCase()))
+    : [];
+  const allMatches = [...savedMatches, ...results];
+  const visibleMatches = showAll ? allMatches : allMatches.slice(0, 1);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -41,6 +66,7 @@ export default function FoodLogModal({ meal, mealLabel, items, onAdd, onUpdateGr
     if (!query.trim()) return;
     setSearching(true);
     setError(null);
+    setShowAll(false);
     try {
       const found = await searchFoods(query);
       setResults(found);
@@ -48,6 +74,7 @@ export default function FoodLogModal({ meal, mealLabel, items, onAdd, onUpdateGr
       setError(err instanceof Error ? err.message : "Search failed");
       setResults([]);
     } finally {
+      setSearched(true);
       setSearching(false);
     }
   }
@@ -58,12 +85,16 @@ export default function FoodLogModal({ meal, mealLabel, items, onAdd, onUpdateGr
   }
 
   function addManual() {
-    const grams = parseFloat(manual.grams) || 0;
+    const amount = parseFloat(manual.amount) || 0;
     const calories = parseFloat(manual.calories) || 0;
+    const unit = UNITS.find((u) => u.key === manual.unit) ?? UNITS[0];
+    const grams = amount * unit.grams;
     if (!manual.name.trim() || grams <= 0) return;
     const caloriesPer100g = (calories / grams) * 100;
-    onAdd({ name: manual.name.trim(), grams, caloriesPer100g });
-    setManual({ name: "", grams: "100", calories: "" });
+    const name = manual.name.trim();
+    onAdd({ name, grams, caloriesPer100g });
+    onSaveFood(name, caloriesPer100g);
+    setManual({ name: "", amount: "100", unit: "g", calories: "" });
   }
 
   return (
@@ -116,12 +147,19 @@ export default function FoodLogModal({ meal, mealLabel, items, onAdd, onUpdateGr
 
         {error && <p className="text-xs text-red-600">{error}</p>}
 
-        {results.length > 0 && (
+        {allMatches.length > 0 && (
           <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
-            {results.map((result) => (
+            {visibleMatches.map((result) => (
               <div key={result.id} className="flex items-center gap-2 rounded-xl border border-border p-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-foreground truncate">{result.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-bold text-foreground truncate">{result.name}</p>
+                    {result.saved && (
+                      <span className="text-xs px-1.5 py-0.5 rounded-md font-bold bg-secondary text-secondary-foreground flex-shrink-0">
+                        Saved
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {result.brand ? `${result.brand} · ` : ""}
                     {Math.round(result.caloriesPer100g)} kcal / 100g
@@ -141,7 +179,21 @@ export default function FoodLogModal({ meal, mealLabel, items, onAdd, onUpdateGr
                 </button>
               </div>
             ))}
+            {!showAll && allMatches.length > 1 && (
+              <button
+                onClick={() => setShowAll(true)}
+                className="text-xs text-primary font-bold hover:opacity-70 transition-all self-start px-1"
+              >
+                Not it? Show {allMatches.length - 1} more {allMatches.length === 2 ? "option" : "options"}
+              </button>
+            )}
           </div>
+        )}
+
+        {searched && !searching && allMatches.length === 0 && !error && (
+          <p className="text-xs text-muted-foreground">
+            No matches — try a simpler word, or add it manually below.
+          </p>
         )}
 
         <div className="pt-2 border-t border-border">
@@ -154,13 +206,22 @@ export default function FoodLogModal({ meal, mealLabel, items, onAdd, onUpdateGr
                 className={`${inputCls} w-full`}
               />
               <div className="flex gap-2">
-                <input
-                  type="number" min="0"
-                  value={manual.grams}
-                  onChange={(e) => setManual((p) => ({ ...p, grams: e.target.value }))}
-                  placeholder="Grams"
-                  className={inputCls}
-                />
+                <div className="flex flex-1 gap-1">
+                  <input
+                    type="number" min="0"
+                    value={manual.amount}
+                    onChange={(e) => setManual((p) => ({ ...p, amount: e.target.value }))}
+                    placeholder="Amount"
+                    className={inputCls}
+                  />
+                  <select
+                    value={manual.unit}
+                    onChange={(e) => setManual((p) => ({ ...p, unit: e.target.value }))}
+                    className="rounded-xl border border-border bg-card px-2 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    {UNITS.map((u) => <option key={u.key} value={u.key}>{u.label}</option>)}
+                  </select>
+                </div>
                 <input
                   type="number" min="0"
                   value={manual.calories}
@@ -173,6 +234,9 @@ export default function FoodLogModal({ meal, mealLabel, items, onAdd, onUpdateGr
                 <button onClick={addManual} className={btnPrimary}>Add manually</button>
                 <button onClick={() => setManualMode(false)} className="px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold">Cancel</button>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Saved to your foods so you can search for it next time.
+              </p>
             </div>
           ) : (
             <button onClick={() => setManualMode(true)} className="text-sm text-primary font-bold hover:opacity-70 transition-all">

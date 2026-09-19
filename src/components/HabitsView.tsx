@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { HabitData, BiometricData, HabitEntry, CustomHabit, MealKey, TimeOfDay } from "../types";
 import type { useMedications } from "../hooks/useMedications";
 import { useFoodLog } from "../hooks/useFoodLog";
+import { useCustomFoods } from "../hooks/useCustomFoods";
 import FoodLogModal from "./FoodLogModal";
 import PageHeader from "./PageHeader";
 
@@ -94,6 +95,7 @@ function FoodCard({ data, onChange, activeDate, userId }: Props) {
     : { breakfast: 0, lunch: 0, dinner: 0, snacks: 0 };
 
   const foodLog = useFoodLog(userId, activeDate, data, onChange);
+  const customFoods = useCustomFoods(userId);
   const [openMeal, setOpenMeal] = useState<MealKey | null>(null);
 
   const target = 2000;
@@ -177,9 +179,11 @@ function FoodCard({ data, onChange, activeDate, userId }: Props) {
           meal={openMeal}
           mealLabel={MEALS.find((m) => m.key === openMeal)!.label}
           items={foodLog.items.filter((i) => i.meal === openMeal)}
+          savedFoods={customFoods.foods}
           onAdd={(food) => foodLog.addItem(openMeal, food)}
           onUpdateGrams={foodLog.updateGrams}
           onDelete={foodLog.deleteItem}
+          onSaveFood={customFoods.saveFood}
           onClose={() => setOpenMeal(null)}
         />
       )}

@@ -47,7 +47,7 @@ const ICONS = ["⭐", "📚", "🧘", "🎯", "💪", "🎨", "🌿", "🐾", "�
 function CommentBubble({ text }: { text: string }) {
   return (
     <div className="rounded-xl bg-muted border border-border px-3 py-2 mb-4">
-      <p className="text-xs text-secondary-foreground">{text}</p>
+      <p className="text-xs text-secondary-foreground">✨ {text}</p>
     </div>
   );
 }
@@ -270,13 +270,9 @@ function WaterCard({ data, onChange, activeDate, biometrics }: Props) {
         <span className="ml-auto text-3xl font-extrabold text-foreground">{glasses}/{nudgeTarget}</span>
       </div>
 
-      {nudgeMsg && (
-        <div className="rounded-xl bg-muted border border-border px-3 py-2 mb-3">
-          <p className="text-xs text-secondary-foreground">{nudgeMsg}</p>
-        </div>
-      )}
+      {nudgeMsg && <CommentBubble text={nudgeMsg} />}
 
-      <div className="grid grid-cols-10 gap-1 mb-4">
+      <div className="grid gap-1 mb-4" style={{ gridTemplateColumns: `repeat(${nudgeTarget}, minmax(0, 1fr))` }}>
         {Array.from({ length: nudgeTarget }).map((_, i) => (
           <button key={i} onClick={() => set(i < glasses ? i : i + 1)} className="flex items-center justify-center text-3xl aspect-square transition-all hover:scale-110 w-full">
             {i < glasses ? "💧" : "🫙"}
@@ -699,10 +695,10 @@ function MoodCard({ data, onChange, activeDate, biometrics }: Props) {
           <button key={m.value} onClick={() => set(m.value)}
             className="flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all text-left flex-1"
             style={mood === m.value
-              ? { background: "var(--rose)", boxShadow: "0 0 0 2px var(--primary)" }
-              : { background: "var(--muted)" }}>
+              ? { background: "#3D2E7C", color: "#fff" }
+              : { background: "var(--muted)", color: "var(--foreground)" }}>
             <span className="text-xl">{m.emoji}</span>
-            <span className="text-xs font-bold text-foreground">{m.label}</span>
+            <span className="text-xs font-bold">{m.label}</span>
           </button>
         ))}
       </div>

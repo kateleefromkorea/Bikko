@@ -9,10 +9,14 @@ import {
 } from "recharts";
 import type { HabitData, BiometricData, HabitEntry, BiometricEntry, CustomHabit } from "../types";
 import PageHeader from "./PageHeader";
+import type { ProfileRow } from "../hooks/useProfile";
+import { goalByKey } from "../lib/metabolics";
 
 interface Props {
   data: HabitData;
   biometrics: BiometricData;
+  /** Carries the baseline computed at the end of onboarding. */
+  profile?: ProfileRow;
 }
 
 type Period = "week" | "month" | "year";
@@ -190,7 +194,76 @@ function InsightCard({ text, icon }: { text: string; icon: string }) {
 
 // ── Main ───────────────────────────────────────────────────────────────────
 
-export default function Dashboard({ data, biometrics }: Props) {
+/**
+ * The numbers onboarding just worked out, shown first so a user who has only
+ * finished the wizard still lands on something about them.
+ */
+function BaselinePlan({ profile }: { profile: ProfileRow }) {
+  const goal = goalByKey(profile.primary_goal);
+  const rate = profile.weekly_rate_kg;
+
+  const tiles = [
+    { label: "BMR", value: Math.round(profile.bmr!).toLocaleString(), unit: "kcal", note: "At complete rest" },
+    { label: "TDEE", value: Math.round(profile.tdee!).toLocaleString(), unit: "kcal", note: "With your activity on top" },
+    {
+      label: "Daily target",
+      value: Math.round(profile.calorie_goal).toLocaleString(),
+      unit: "kcal",
+      note: rate ? `${rate < 0 ? "Deficit" : "Surplus"} for ${Math.abs(rate)} kg / week` : "Holding steady",
+      accent: true,
+    },
+  ];
+
+  return (
+    <div className="bg-card rounded-3xl border border-border p-5 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div>
+          <p className="font-bold text-foreground text-sm">Your plan</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Mifflin-St Jeor, from the details you gave us
+            {goal ? ` · ${goal.label.toLowerCase()}` : ""}
+            {profile.target_weight_kg ? ` · target ${profile.target_weight_kg} kg` : ""}
+          </p>
+        </div>
+        {goal && <span className="text-2xl">{goal.icon}</span>}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {tiles.map((t) => (
+          <div
+            key={t.label}
+            className="rounded-2xl p-4 border"
+            style={t.accent
+              ? { background: "var(--primary)", borderColor: "var(--primary)" }
+              : { background: "var(--muted)", borderColor: "var(--border)" }}
+          >
+            <p
+              className="text-xs font-bold uppercase tracking-wide"
+              style={{ color: t.accent ? "rgba(255,255,255,0.75)" : "var(--muted-foreground)" }}
+            >
+              {t.label}
+            </p>
+            <p
+              className="text-3xl font-extrabold mt-1"
+              style={{ color: t.accent ? "#fff" : "var(--foreground)" }}
+            >
+              {t.value}
+              <span className="text-xs font-semibold ml-1">{t.unit}</span>
+            </p>
+            <p
+              className="text-xs mt-1"
+              style={{ color: t.accent ? "rgba(255,255,255,0.8)" : "var(--muted-foreground)" }}
+            >
+              {t.note}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard({ data, biometrics, profile }: Props) {
   const [period, setPeriod] = useState<Period>("week");
 
   const days = period === "week" ? 7 : period === "month" ? 30 : 365;
@@ -297,6 +370,9 @@ export default function Dashboard({ data, biometrics }: Props) {
         subtitle={`${periodLabel} · synced from Apple Watch & Apple Health`}
         action={<PeriodToggle period={period} onChange={setPeriod} />}
       />
+
+      {/* ── Baseline from onboarding (absent until the wizard is finished) ── */}
+      {profile?.bmr != null && profile.tdee != null && <BaselinePlan profile={profile} />}
 
       {/* ── Today's overview ── */}
       <Section title="Today's Overview" sub="Snapshot from your latest device sync">

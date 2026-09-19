@@ -12,6 +12,7 @@ import { isSupabaseConfigured } from "./lib/supabase";
 import { useHabitData } from "./hooks/useHabitData";
 import { useProfile } from "./hooks/useProfile";
 import { useMedications } from "./hooks/useMedications";
+import OnboardingModal from "./onboarding/OnboardingModal";
 
 type Tab = "habits" | "dashboard" | "coaches" | "profile";
 
@@ -33,7 +34,7 @@ export default function App() {
   const userId = session?.user.id ?? null;
   const [tab, setTab] = useState<Tab>("habits");
   const { data, setData } = useHabitData(userId);
-  const { profile, updateProfile } = useProfile(userId);
+  const { profile, updateProfile, loading: profileLoading } = useProfile(userId);
   const medications = useMedications(userId);
   const biometrics = defaultBiometrics;
 
@@ -55,6 +56,11 @@ export default function App() {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+  // The wizard is the gate: it stays up until the profile carries a
+  // completion timestamp. Held back while the profile loads so a returning
+  // user never sees it flash.
+  const needsOnboarding = !profileLoading && !profile.onboarding_completed_at;
 
   const done = completedToday(data);
   const total = 6 + data.custom.length;
@@ -142,7 +148,7 @@ export default function App() {
             total={total}
           />
         )}
-        {tab === "dashboard" && <Dashboard data={data} biometrics={biometrics} />}
+        {tab === "dashboard" && <Dashboard data={data} biometrics={biometrics} profile={profile} />}
         {tab === "coaches" && <CoachView />}
         {tab === "profile" && (
           <ProfileView
@@ -154,6 +160,18 @@ export default function App() {
           />
         )}
       </main>
+
+      {needsOnboarding && (
+        <OnboardingModal
+          profile={profile}
+          onComplete={async (patch) => {
+            await updateProfile(patch);
+            // Instant gratification: land on the dashboard, where the numbers
+            // we just worked out are waiting at the top.
+            setTab("dashboard");
+          }}
+        />
+      )}
 
       <footer className="border-t border-border text-center py-6 text-xs text-muted-foreground px-4 sm:px-6">
         Fikko · {new Date().getFullYear()} · Stay consistent, stay you.

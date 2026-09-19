@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { useOnboardingState } from "../useOnboardingState";
 import { GAIN_RATES, GOALS, LOSS_RATES, goalByKey } from "../../lib/metabolics";
 import { ErrorText, Field, inputCls, SelectCard, StepHeading } from "../ui";
@@ -9,6 +10,25 @@ export default function StepGoals({ api, showError }: { api: Api; showError: boo
   const goal = goalByKey(s.goalKey);
   const direction = goal?.weightManaging ?? null;
   const rates = direction === "gain" ? GAIN_RATES : LOSS_RATES;
+
+  // Picking a weight-managing goal reveals the target-weight block below the
+  // fold, where it is easy to miss. Bring it into view so the step does not
+  // look finished when it isn't.
+  const detailsRef = useRef<HTMLDivElement>(null);
+  const previousDirection = useRef<typeof direction | "initial">("initial");
+
+  useEffect(() => {
+    const previous = previousDirection.current;
+    previousDirection.current = direction;
+    // Only follow a change the user just made — not arriving on the step with
+    // a goal already chosen, which is what happens on Back from step 4.
+    if (previous === "initial" || previous === direction || !direction) return;
+
+    detailsRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    });
+  }, [direction]);
 
   return (
     <div>
@@ -36,7 +56,7 @@ export default function StepGoals({ api, showError }: { api: Api; showError: boo
       </div>
 
       {direction && (
-        <div className="mt-6 pt-6 border-t border-border flex flex-col gap-5">
+        <div ref={detailsRef} className="mt-6 pt-6 border-t border-border flex flex-col gap-5">
           <Field
             label={`Target weight (${s.weightUnit})`}
             hint={direction === "loss" ? "Where you would like to get to — no rush." : "The lean mass you are building towards."}
